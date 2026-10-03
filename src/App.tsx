@@ -2,118 +2,155 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 
 // ============ HOOKS ============
 
-function useScrollAnimation() {
+function useScrollReveal(threshold = 0.15) {
   const ref = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
+        if (entry.isIntersecting) setIsVisible(true);
       },
-      { threshold: 0.15, rootMargin: '0px 0px -50px 0px' }
+      { threshold, rootMargin: '0px 0px -80px 0px' }
     );
-
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
-  }, []);
+  }, [threshold]);
 
   return { ref, isVisible };
 }
 
-function useParallax() {
-  const [offset, setOffset] = useState(0);
-
+function useParallax(speed = 0.3) {
+  const ref = useRef<HTMLDivElement>(null);
+  
   useEffect(() => {
-    const handleScroll = () => setOffset(window.scrollY);
+    const handleScroll = () => {
+      if (!ref.current) return;
+      const rect = ref.current.getBoundingClientRect();
+      const scrolled = window.innerHeight - rect.top;
+      const total = window.innerHeight + rect.height;
+      const progress = scrolled / total;
+      const translateY = (progress - 0.5) * speed * 200;
+      ref.current.style.transform = `translateY(${translateY}px)`;
+    };
     window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [speed]);
 
-  return offset;
+  return ref;
 }
 
-function useCountUp(end: number, duration: number = 2000, start: boolean = false) {
+function useCountUp(end: number, duration = 2000, start = false) {
   const [count, setCount] = useState(0);
-
   useEffect(() => {
     if (!start) return;
     let startTime: number;
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      setCount(Math.floor(progress * end));
+    const animate = (ts: number) => {
+      if (!startTime) startTime = ts;
+      const progress = Math.min((ts - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(eased * end));
       if (progress < 1) requestAnimationFrame(animate);
     };
     requestAnimationFrame(animate);
   }, [end, duration, start]);
-
   return count;
 }
 
+// VK Photo URLs
+const PHOTOS = {
+  hero: 'https://sun9-13.vkuserphoto.ru/s/v1/ig2/zFbcuceL2RhzNyaDMQfQLb6PUkMp-zJ782RHnx4ydYtDzaD6qexltBgqr-ErhUGnqOcTr5Y9OBAOaTzj-Ot_owp3.jpg?quality=95&crop=256,0,2048,1152&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,720x405,1080x607,1280x720,1440x810,2048x1152&from=bu&u=K3w7mhYXJHgK4ldAnxuT9yEX1gyRRfZkSPNih-2BTYY&cs=2048x0',
+  product1: 'https://sun9-7.vkuserphoto.ru/s/v1/ig2/uzMbsL18hLFPQsNqx60WYvTlwVKFelNy4bRDk2fWabopIEuOmqA2wxx-114qrbPsAcPkPNRFMEVb6SptCUmAldd1.jpg?quality=95&crop=0,0,2560,1920&as=32x24,48x36,72x54,108x81,160x120,240x180,360x270,480x360,540x405,640x480,720x540,1080x810,1280x960,1440x1080,2560x1920&from=bu&u=SRNzGGrdCJyOmQ5tFs1BiC4UnzZwoCbJqwfRa4SrOKk&cs=2560x0',
+  product2: 'https://sun9-59.vkuserphoto.ru/s/v1/ig2/73wlTEHSUOJFeStg7NqlwbVp_wK7iWmC-Zsyn1kzuby4fSpl9iuaxhpRx0f-bz0NBd8k3s4VG798o9dfytlyjnfn.jpg?quality=95&as=32x43,48x64,72x96,108x144,160x213,240x320,360x480,480x640,540x720,640x853,720x960,1080x1440,1280x1707,1440x1920,1920x2560&from=bu&u=QbiYUxVCg1xucOgyQCsge1l_aez8VJGdUR6HEFx_lR4&cs=1920x0',
+  product3: 'https://sun9-68.vkuserphoto.ru/s/v1/ig2/u2Yep-q10rjkasBC84VyBrgB5NlUUMkI4hz2f-bHRHusrDFoBR4hmGhpvqDlDXBvY6rkrxoW-qC1oPhtWmtY2jhq.jpg?quality=95&as=32x43,48x64,72x96,108x144,160x213,240x320,360x480,480x640,540x720,640x853,720x960,1080x1440,1280x1707,1440x1920,1920x2560&from=bu&u=3psrzXdNT7wb7CjPs6oDM6g8S75qYbHdMtnc9_r5sBg&cs=1920x0',
+  gallery1: 'https://sun9-7.vkuserphoto.ru/s/v1/ig2/eispSnwz9X2hrEO3Pbdqn_Lj1gRSMOLXQm6opejaSun3IXeK0grWUgfckGEsfniYsJA59BFxn9Yw7deQ5WrXL1ZA.jpg?quality=95&as=32x16,48x24,72x36,108x55,160x81,240x122,360x183,480x243,540x274,640x324,720x365,1080x548,1280x649,1440x730,2560x1298&from=bu&u=abw07EHPYE9OcjffAY1JjvMHdN9TZUq-ZTNlo4550-E&cs=2560x0',
+  gallery2: 'https://sun9-70.vkuserphoto.ru/s/v1/ig2/NAOdZchuN80mZQJ58HqHteSqfv4BMoMKkaDwWTb3b4zEoseNtZ8vDxEnkra4qfaLsqa5h5Sib5VsdR0VEpb4kCjB.jpg?quality=95&as=32x14,48x22,72x32,108x49,160x72,240x108,360x162,480x216,540x243,640x288,720x324,1080x486,1280x576,1440x648,2560x1152&from=bu&u=cxMX70Bym5-VTuqISqk7KIUpAFq0BR3UIYoiwCL4o_I&cs=2560x0',
+  gallery3: 'https://sun9-9.vkuserphoto.ru/s/v1/ig2/qVgVA4MgeRC_kC8LjGFxtfwmF3m-3nl290Jo0Xd33K_3uXr-NgxxSHvemqH1W6WB4Ui5uo0Yjj1NC-XjzmB8y51z.jpg?quality=95&as=32x14,48x22,72x32,108x49,160x72,240x108,360x162,480x216,540x243,640x288,720x324,1080x486,1280x576,1440x648,2560x1152&from=bu&u=opi_XlzFHTeBVWvcyAWT8ApY3kqMFP-SiOAQ1Co33f4&cs=2560x0',
+  gallery4: 'https://sun9-45.vkuserphoto.ru/s/v1/ig2/GnuybaSFQweWS-eeypzELlQ-T6evqy8xQagcTCNlgbHnlKAapTOwxA_sNSP2nDdZmBBJ1_tmx8wM5hXiiQYwJTAD.jpg?quality=95&as=32x14,48x22,72x32,108x49,160x72,240x108,360x162,480x216,540x243,640x288,720x324,1080x486,1280x576,1440x648,2560x1152&from=bu&u=7qeRQjF0ZXgaxdjygqeN0CtmsgT_q2CUMpPv6tPSung&cs=2560x0',
+  gallery5: 'https://sun9-65.vkuserphoto.ru/s/v1/ig2/rdaWAna1J2iGcLmUtOhnwo4d4G5y-UnfQQF9a89T_OhGLWzstD312N8xkPsLUb5fcfyIsBv296ozMWRoYHF-xyJE.jpg?quality=95&as=32x24,48x36,72x54,108x81,160x120,240x180,360x270,480x360,540x405,640x480,720x540,1080x810,1280x960,1440x1080,2560x1920&from=bu&u=n32Y1_-jZQshbq-GvSEMCM76QghSD6BmuLH2GknIy3M&cs=2560x0',
+  gallery6: 'https://sun9-54.vkuserphoto.ru/s/v1/ig2/KK44fuf5HhFQN9wkgZ4Msem2OeOIsFOd79FESZ6D0Q_gK_LjdJmxng0aH7epqicFAhMUx-fNxPHN4gYYWk3SPqwa.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x360,540x304,640x360,720x405,1080x607,1280x720,1440x810,2560x1440&from=bu&u=4RjyCr0zEoOEzUmqHeIRn5B_k9kiWLuzV3syZ0Q3w1c&cs=2560x0',
+  gallery7: 'https://sun9-17.vkuserphoto.ru/s/v1/ig2/NGbjY5kEA4Yxg4k6m-cFWaX1y3SCvw5jCk8renHr5eNpQfOG9qnTQ2NdumkPca-mYmdU25s6Ssc0Hcju8qQDUagn.jpg?quality=95&crop=0,0,1707,2560&as=32x48,48x72,72x108,108x162,160x240,240x360,360x540,480x720,540x810,640x960,720x1080,1080x1620,1280x1920,1440x2160,1707x2560&from=bu&u=1WfV4OVllsShwmNVnCt3DUBxzjMSGTiDiTHA9ibFrF4&cs=1707x0',
+  gallery8: 'https://sun9-34.vkuserphoto.ru/s/v1/ig2/K8Gwoe4egTnBf3TQ7qGMG20jsWiuX5X2zySdLARIv_drZk-yCpl4Ul7kxOv5Cjn9P3vAGsUKf99uVtHdGOHX4AYg.jpg?quality=95&as=32x45,48x68,72x102,108x153,160x226,240x339,360x509,480x679,540x764,640x905,720x1018,1080x1527,1191x1684&from=bu&u=ozG8KPGAX22-DaXhgozmmbEamFGwgLIodhlaWJzsTnA&cs=1191x0',
+  gallery9: 'https://sun9-5.vkuserphoto.ru/s/v1/ig2/8AeAE7ff8ZdAjIPmj9lfGu1BfzaaTcR-4l-v5i5JCSHwwqMlxLSxFHZd71RrI91gsNFZ_SpimT_9Kk4qIN62poAy.jpg?quality=95&as=32x24,48x36,72x54,108x81,160x120,240x180,360x270,480x360,540x405,640x480,720x540,1080x810,1280x960&from=bu&u=44Dwwp-Ykk5o9gxzqVF4luR4PrXJYWCQdY1HKsWMw4I&cs=1280x0',
+  gallery10: 'https://sun9-41.vkuserphoto.ru/s/v1/ig2/ZVKX_jucXzMo9fJyXcsNhrcMS7-SXKlgBtUBGrn0R85NtQhge0D70Fj6QlMRkrmRjKCGzdGx2tgkzO3_hWL02Ucw.jpg?quality=95&as=32x57,48x85,72x128,108x192,160x284,240x427,360x640,480x853,540x960,640x1138,720x1280,900x1600&from=bu&u=dFwkuajeaHs38gCXQAIl5tn6rkMB92AjMol6bO84Wwk&cs=900x0',
+};
+
 // ============ COMPONENTS ============
+
+function ScrollProgress() {
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    const handleScroll = () => {
+      const total = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(total > 0 ? (window.scrollY / total) * 100 : 0);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  return (
+    <div className="fixed top-0 left-0 w-full h-[2px] z-[100] bg-transparent">
+      <div className="h-full bg-white/40 origin-left" style={{ transform: `scaleX(${progress / 100})` }} />
+    </div>
+  );
+}
 
 function Navigation() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
+    const handleScroll = () => setScrolled(window.scrollY > 80);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
-    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-700 ${scrolled ? 'py-3 bg-black/80 backdrop-blur-xl border-b border-white/5' : 'py-6 bg-transparent'}`}>
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        <a href="#hero" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-full border border-[#c9a96e]/50 flex items-center justify-center group-hover:border-[#c9a96e] transition-colors duration-300">
-            <span className="font-display text-[#c9a96e] font-bold text-lg">V</span>
-          </div>
-          <span className="font-display text-xl tracking-wider text-white">VELES</span>
+    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${scrolled ? 'py-4 bg-black/80 backdrop-blur-2xl' : 'py-6 bg-transparent'}`}>
+      <div className="max-w-[1400px] mx-auto px-6 md:px-10 flex items-center justify-between">
+        <a href="#hero" className="flex items-center gap-2">
+          <span className="text-xl font-semibold tracking-tight text-white">VELES</span>
         </a>
 
-        <div className="hidden lg:flex items-center gap-8">
-          {['Преимущества', 'Продукция', 'О нас', 'Отзывы', 'Контакты'].map((item, i) => (
-            <a
-              key={i}
-              href={`#${['features', 'products', 'about', 'reviews', 'contacts'][i]}`}
-              className="text-sm text-white/60 hover:text-[#c9a96e] transition-colors duration-300 tracking-wide"
-            >
-              {item}
+        <div className="hidden md:flex items-center gap-10">
+          {[
+            ['Продукт', '#product'],
+            ['Технологии', '#tech'],
+            ['Галерея', '#gallery'],
+            ['Отзывы', '#reviews'],
+          ].map(([label, href]) => (
+            <a key={href} href={href} className="text-[13px] text-white/70 hover:text-white transition-colors duration-300 tracking-[-0.01em]">
+              {label}
             </a>
           ))}
         </div>
 
-        <a href="#order" className="hidden lg:block btn-premium bg-[#c9a96e] text-black px-6 py-2.5 rounded-full text-sm font-medium tracking-wide">
+        <a href="#order" className="hidden md:block btn-primary px-5 py-2.5 rounded-full text-[13px]">
           Заказать
         </a>
 
-        <button onClick={() => setMenuOpen(!menuOpen)} className="lg:hidden w-10 h-10 flex flex-col items-center justify-center gap-1.5">
-          <span className={`w-6 h-0.5 bg-white transition-all duration-300 ${menuOpen ? 'rotate-45 translate-y-2' : ''}`} />
-          <span className={`w-6 h-0.5 bg-white transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`} />
-          <span className={`w-6 h-0.5 bg-white transition-all duration-300 ${menuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+        <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden w-10 h-10 flex flex-col items-center justify-center gap-1.5">
+          <span className={`w-5 h-[1.5px] bg-white transition-all duration-300 ${menuOpen ? 'rotate-45 translate-y-[4px]' : ''}`} />
+          <span className={`w-5 h-[1.5px] bg-white transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`} />
+          <span className={`w-5 h-[1.5px] bg-white transition-all duration-300 ${menuOpen ? '-rotate-45 -translate-y-[4px]' : ''}`} />
         </button>
       </div>
 
-      {/* Mobile Menu */}
-      <div className={`lg:hidden absolute top-full left-0 w-full bg-black/95 backdrop-blur-xl border-b border-white/5 transition-all duration-500 ${menuOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-4'}`}>
-        <div className="px-6 py-8 flex flex-col gap-6">
-          {['Преимущества', 'Продукция', 'О нас', 'Отзывы', 'Контакты'].map((item, i) => (
-            <a
-              key={i}
-              href={`#${['features', 'products', 'about', 'reviews', 'contacts'][i]}`}
-              onClick={() => setMenuOpen(false)}
-              className="text-lg text-white/80 hover:text-[#c9a96e] transition-colors"
-            >
-              {item}
+      {/* Mobile menu */}
+      <div className={`md:hidden fixed inset-0 top-0 bg-black z-40 transition-all duration-500 ${menuOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
+        <div className="flex flex-col items-center justify-center h-full gap-8">
+          {[
+            ['Продукт', '#product'],
+            ['Технологии', '#tech'],
+            ['Галерея', '#gallery'],
+            ['Отзывы', '#reviews'],
+            ['Заказать', '#order'],
+          ].map(([label, href]) => (
+            <a key={href} href={href} onClick={() => setMenuOpen(false)} className="text-2xl text-white/80 hover:text-white transition-colors">
+              {label}
             </a>
           ))}
-          <a href="#order" className="btn-premium bg-[#c9a96e] text-black px-6 py-3 rounded-full text-center font-medium">
-            Заказать
-          </a>
         </div>
       </div>
     </nav>
@@ -121,270 +158,363 @@ function Navigation() {
 }
 
 function HeroSection() {
-  const parallaxOffset = useParallax();
   const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    setTimeout(() => setLoaded(true), 100);
-  }, []);
+  useEffect(() => { setTimeout(() => setLoaded(true), 100); }, []);
 
   return (
-    <section id="hero" className="relative min-h-screen flex items-center justify-center overflow-hidden hero-gradient">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div
-          className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full opacity-20"
-          style={{
-            background: 'radial-gradient(circle, rgba(201,169,110,0.3) 0%, transparent 70%)',
-            transform: `translate(${parallaxOffset * 0.02}px, ${parallaxOffset * -0.03}px)`,
-          }}
+    <section id="hero" className="relative h-screen min-h-[700px] flex items-end overflow-hidden">
+      {/* Background image */}
+      <div className="absolute inset-0">
+        <img 
+          src={PHOTOS.hero} 
+          alt="VELES каркасные автошторки" 
+          className="w-full h-full object-cover"
+          style={{ transform: 'scale(1.05)' }}
         />
-        <div
-          className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] rounded-full opacity-10"
-          style={{
-            background: 'radial-gradient(circle, rgba(201,169,110,0.4) 0%, transparent 70%)',
-            transform: `translate(${parallaxOffset * -0.015}px, ${parallaxOffset * 0.02}px)`,
-          }}
-        />
-        {/* Grid lines */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: 'linear-gradient(rgba(201,169,110,1) 1px, transparent 1px), linear-gradient(90deg, rgba(201,169,110,1) 1px, transparent 1px)',
-          backgroundSize: '100px 100px'
-        }} />
-        {/* Animated orbiting circles */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] md:w-[800px] md:h-[800px]">
-          <div className="absolute inset-0 rounded-full border border-[#c9a96e]/5 animate-[spin_30s_linear_infinite]" />
-          <div className="absolute inset-8 rounded-full border border-[#c9a96e]/[0.03] animate-[spin_45s_linear_infinite_reverse]" />
-          <div className="absolute inset-16 rounded-full border border-[#c9a96e]/[0.02] animate-[spin_60s_linear_infinite]" />
-          {/* Orbiting dots */}
-          <div className="absolute top-0 left-1/2 w-2 h-2 rounded-full bg-[#c9a96e]/30 animate-[spin_30s_linear_infinite]" style={{ transformOrigin: '50% 400px' }} />
-          <div className="absolute top-0 left-1/2 w-1.5 h-1.5 rounded-full bg-[#c9a96e]/20 animate-[spin_45s_linear_infinite_reverse]" style={{ transformOrigin: '50% 380px' }} />
-        </div>
+        <div className="absolute inset-0 overlay-gradient" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
-        {/* Badge */}
-        <div className={`transition-all duration-1000 delay-300 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#c9a96e]/30 bg-[#c9a96e]/5 mb-8">
-            <div className="w-2 h-2 rounded-full bg-[#c9a96e] pulse-gold" />
-            <span className="text-[#c9a96e] text-xs tracking-[0.2em] uppercase font-medium">Премиум качество</span>
-          </div>
+      {/* Content */}
+      <div className="relative z-10 max-w-[1400px] mx-auto px-6 md:px-10 pb-20 md:pb-32 w-full">
+        <div className={`transition-all duration-1000 delay-300 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+          <p className="text-white/60 text-sm md:text-base tracking-[0.15em] uppercase mb-4">Каркасные автошторки</p>
         </div>
-
-        {/* Main heading */}
-        <h1 className={`font-display transition-all duration-1000 delay-500 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
-          <span className="block text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-bold text-white leading-[0.9] tracking-tight mb-4">
-            Каркасные
-          </span>
-          <span className="block text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-bold text-gradient leading-[0.9] tracking-tight">
-            Автошторки
-          </span>
+        <h1 className={`text-white text-5xl md:text-7xl lg:text-[5.5rem] xl:text-[7rem] font-bold tracking-[-0.03em] leading-[0.9] max-w-4xl transition-all duration-1000 delay-500 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-16'}`}>
+          Другой уровень<br />комфорта<br />в вашем авто.
         </h1>
-
-        {/* Subtitle */}
-        <p className={`mt-8 text-lg md:text-xl text-white/50 max-w-2xl mx-auto leading-relaxed font-light transition-all duration-1000 delay-700 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          Безупречная защита от солнца, пыли и посторонних взглядов.
-          <br className="hidden md:block" />
-          Магнитное крепление. Установка за 5 минут.
+        <p className={`mt-6 md:mt-8 text-white/60 text-lg md:text-xl max-w-xl leading-relaxed font-light transition-all duration-1000 delay-700 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          Защита от солнца, пыли и насекомых. Магнитное крепление. Установка за 5 секунд.
         </p>
-
-        {/* CTA Buttons */}
-        <div className={`mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 transition-all duration-1000 delay-900 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <a href="#order" className="btn-premium bg-[#c9a96e] text-black px-10 py-4 rounded-full text-base font-semibold tracking-wide">
-            Заказать сейчас
+        <div className={`mt-8 md:mt-10 flex flex-col sm:flex-row gap-4 transition-all duration-1000 delay-[900ms] ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+          <a href="#order" className="btn-primary px-8 py-4 rounded-full text-sm text-center">
+            Заказать шторки
           </a>
-          <a href="#features" className="btn-premium border border-white/20 text-white px-10 py-4 rounded-full text-base font-medium tracking-wide hover:border-[#c9a96e]/50 hover:text-[#c9a96e]">
+          <a href="#product" className="btn-secondary px-8 py-4 rounded-full text-sm text-center">
             Узнать больше
           </a>
         </div>
+      </div>
+    </section>
+  );
+}
 
-        {/* Stats */}
-        <div className={`mt-20 grid grid-cols-3 gap-8 max-w-lg mx-auto transition-all duration-1000 delay-[1100ms] ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          {[
-            { value: '5 мин', label: 'Установка' },
-            { value: '10%', label: 'Светопропуск.' },
-            { value: '100%', label: 'Магниты' },
-          ].map((stat, i) => (
-            <div key={i} className="text-center">
-              <div className="text-2xl md:text-3xl font-bold text-white counter-number">{stat.value}</div>
-              <div className="text-xs text-white/40 mt-1 tracking-wide uppercase">{stat.label}</div>
+function ManifestoSection() {
+  const { ref, isVisible } = useScrollReveal();
+  const { ref: ref2, isVisible: isVisible2 } = useScrollReveal(0.1);
+
+  return (
+    <section className="relative section-dark">
+      {/* Full-width statement */}
+      <div className="py-32 md:py-48 lg:py-64 overflow-hidden">
+        <div ref={ref} className={`max-w-[1400px] mx-auto px-6 md:px-10 reveal-slow ${isVisible ? 'visible' : ''}`}>
+          <p className="text-white/30 text-sm tracking-[0.2em] uppercase mb-8 md:mb-12">Философия</p>
+          <h2 className="text-white text-4xl md:text-6xl lg:text-[5rem] xl:text-[6.5rem] font-bold tracking-[-0.03em] leading-[1.0] max-w-6xl">
+            Мы верим, что комфорт в автомобиле — это не роскошь.
+            <span className="text-white/20"> Это базовое право каждого водителя.</span>
+          </h2>
+        </div>
+      </div>
+
+      {/* Vision */}
+      <div className="py-24 md:py-40 lg:py-56 overflow-hidden">
+        <div ref={ref2} className={`max-w-[1400px] mx-auto px-6 md:px-10 reveal ${isVisible2 ? 'visible' : ''}`}>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+            <div className="lg:col-span-5">
+              <p className="text-white/30 text-sm tracking-[0.15em] uppercase mb-6">Представьте</p>
+              <h3 className="text-white text-3xl md:text-4xl lg:text-5xl font-bold tracking-[-0.02em] leading-[1.1]">
+                Другое утро<br />в дороге.
+              </h3>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Scroll indicator */}
-      <div className={`absolute bottom-10 left-1/2 -translate-x-1/2 transition-all duration-1000 delay-[1300ms] ${loaded ? 'opacity-100' : 'opacity-0'}`}>
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-[10px] text-white/30 tracking-[0.3em] uppercase">Scroll</span>
-          <div className="w-px h-12 bg-gradient-to-b from-[#c9a96e]/50 to-transparent animate-pulse" />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function FeaturesSection() {
-  const features = [
-    {
-      icon: '☀️',
-      title: 'Защита от солнца',
-      description: 'Эффективно отражает солнечные лучи, снижая нагрев салона до 70%. Комфортная температура даже в самый жаркий день.',
-    },
-    {
-      icon: '🧲',
-      title: 'Магнитное крепление',
-      description: 'Неодимовые магниты вшиты в каркас. Не повреждают краску и обшивку. Надёжная фиксация при любой скорости.',
-    },
-    {
-      icon: '🔒',
-      title: 'Приватность',
-      description: 'Светопропускаемость 10% — эффект тонировки. Изнутри отличный обзор, снаружи — полная приватность салона.',
-    },
-    {
-      icon: '🛡️',
-      title: 'Пылезащита',
-      description: 'Мелкоячеистая премиум-сетка не пропускает пыль, грязь и насекомых. Чистый салон в любых условиях.',
-    },
-    {
-      icon: '⚡',
-      title: 'Установка 5 минут',
-      description: 'Просто приложите шторку к проёму — магниты сами притянутся. Никакого клея, сверления и сложных инструментов.',
-    },
-    {
-      icon: '💎',
-      title: 'Премиум материалы',
-      description: 'Стальной каркас 4мм, натуральная кожа на хлястиках, армированные нити. Качество, которое служит годами.',
-    },
-  ];
-
-  return (
-    <section id="features" className="relative py-32 md:py-40 section-gradient">
-      <div className="max-w-7xl mx-auto px-6">
-        <SectionHeader
-          badge="Преимущества"
-          title="Почему VELES"
-          subtitle="Каждая деталь продумана для вашего комфорта и безопасности"
-        />
-
-        <div className="mt-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, i) => (
-            <FeatureCard key={i} feature={feature} delay={i * 100} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function FeatureCard({ feature, delay }: { feature: { icon: string; title: string; description: string }; delay: number }) {
-  const { ref, isVisible } = useScrollAnimation();
-
-  return (
-    <div
-      ref={ref}
-      className={`animate-fade-up ${isVisible ? 'visible' : ''}`}
-      style={{ transitionDelay: `${delay}ms` }}
-    >
-      <div className="group h-full p-8 rounded-2xl glass-effect hover:bg-white/[0.05] transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-[#c9a96e]/5">
-        <div className="text-4xl mb-6">{feature.icon}</div>
-        <h3 className="text-xl font-semibold text-white mb-3 group-hover:text-[#c9a96e] transition-colors duration-300">
-          {feature.title}
-        </h3>
-        <p className="text-white/50 leading-relaxed text-sm">
-          {feature.description}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function ProductShowcase() {
-  const { ref, isVisible } = useScrollAnimation();
-  const parallaxOffset = useParallax();
-
-  return (
-    <section id="products" className="relative py-32 md:py-40 overflow-hidden">
-      {/* Background accent */}
-      <div className="absolute inset-0">
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full opacity-30"
-          style={{
-            background: 'radial-gradient(circle, rgba(201,169,110,0.1) 0%, transparent 60%)',
-            transform: `translate(-50%, calc(-50% + ${parallaxOffset * 0.05}px))`,
-          }}
-        />
-      </div>
-
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <SectionHeader
-          badge="Продукция"
-          title="Совершенство в деталях"
-          subtitle="Каждая шторка VELES — результат ручного мастерства и инженерной точности"
-        />
-
-        <div ref={ref} className={`mt-20 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center animate-scale ${isVisible ? 'visible' : ''}`}>
-          {/* Product visual */}
-          <div className="relative">
-            <div className="relative aspect-square rounded-3xl overflow-hidden glass-effect gold-glow">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#c9a96e]/10 via-transparent to-[#c9a96e]/5" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-64 h-64 md:w-80 md:h-80 mx-auto relative">
-                    {/* Stylized curtain representation */}
-                    <div className="absolute inset-0 rounded-2xl border-2 border-[#c9a96e]/30 overflow-hidden">
-                      <div className="absolute inset-0" style={{
-                        backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 8px, rgba(201,169,110,0.1) 8px, rgba(201,169,110,0.1) 9px), repeating-linear-gradient(90deg, transparent, transparent 8px, rgba(201,169,110,0.1) 8px, rgba(201,169,110,0.1) 9px)',
-                      }} />
-                      <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-[#c9a96e]/20 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-[#c9a96e]/20 to-transparent" />
-                    </div>
-                    {/* Magnets */}
-                    <div className="absolute -left-2 top-1/4 w-4 h-4 rounded-full bg-[#c9a96e]/60 shadow-lg shadow-[#c9a96e]/30" />
-                    <div className="absolute -left-2 top-2/4 w-4 h-4 rounded-full bg-[#c9a96e]/60 shadow-lg shadow-[#c9a96e]/30" />
-                    <div className="absolute -left-2 top-3/4 w-4 h-4 rounded-full bg-[#c9a96e]/60 shadow-lg shadow-[#c9a96e]/30" />
-                    <div className="absolute -right-2 top-1/4 w-4 h-4 rounded-full bg-[#c9a96e]/60 shadow-lg shadow-[#c9a96e]/30" />
-                    <div className="absolute -right-2 top-2/4 w-4 h-4 rounded-full bg-[#c9a96e]/60 shadow-lg shadow-[#c9a96e]/30" />
-                    <div className="absolute -right-2 top-3/4 w-4 h-4 rounded-full bg-[#c9a96e]/60 shadow-lg shadow-[#c9a96e]/30" />
-                    {/* Leather tab */}
-                    <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-12 h-8 bg-gradient-to-b from-[#8B6914] to-[#5C4A0E] rounded-b-lg shadow-lg" />
-                  </div>
-                  <p className="mt-8 text-[#c9a96e]/60 text-sm tracking-wider uppercase">Схема крепления</p>
-                </div>
-              </div>
+            <div className="lg:col-span-6 lg:col-start-7">
+              <p className="text-white/50 text-lg md:text-xl leading-relaxed mb-6">
+                Вы садитесь в машину. Солнце не слепит. Салон прохладный — кондиционеру не нужно работать на износ.
+              </p>
+              <p className="text-white/50 text-lg md:text-xl leading-relaxed mb-6">
+                Ребёнок спокойно спит на заднем сиденье. Никто не лезет в глаза. Никаких мошек, пуха и пыли.
+              </p>
+              <p className="text-white/50 text-lg md:text-xl leading-relaxed">
+                Вы открываете окно — свежий воздух входит свободно. Но не насекомые. Не пыль. 
+                Просто воздух.
+              </p>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
-          {/* Product details */}
-          <div className="space-y-8">
-            <div className="space-y-6">
-              {[
-                { label: 'Каркас', value: 'Стальная проволока 4мм', desc: 'Прочный и лёгкий, сохраняет форму годами' },
-                { label: 'Сетка', value: 'Премиум полиэстер', desc: 'Мелкоячеистая структура, UV-стойкая' },
-                { label: 'Магниты', value: 'Неодимовые N35', desc: 'Сверхсильное сцепление без вреда для ЛКП' },
-                { label: 'Хлястики', value: 'Натуральная кожа', desc: 'Удобный хват, премиальный вид' },
-                { label: 'Нити', value: 'Армированные', desc: 'Двойной шов для максимальной прочности' },
-              ].map((item, i) => (
-                <div key={i} className="group flex items-start gap-4 p-4 rounded-xl hover:bg-white/[0.03] transition-all duration-300">
-                  <div className="w-1 h-full min-h-[48px] rounded-full bg-gradient-to-b from-[#c9a96e] to-[#c9a96e]/30 group-hover:from-[#c9a96e] group-hover:to-[#c9a96e]" />
-                  <div>
-                    <div className="flex items-baseline gap-3">
-                      <span className="text-[#c9a96e] text-sm font-medium tracking-wide">{item.label}</span>
-                      <span className="text-white font-semibold">{item.value}</span>
-                    </div>
-                    <p className="text-white/40 text-sm mt-1">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
+function VisionSection() {
+  const { ref, isVisible } = useScrollReveal();
+  const parallaxRef = useParallax(0.2);
+
+  return (
+    <section className="relative py-32 md:py-48 lg:py-64 section-dark overflow-hidden">
+      <div ref={ref} className={`max-w-[1400px] mx-auto px-6 md:px-10 reveal ${isVisible ? 'visible' : ''}`}>
+        <div ref={parallaxRef} className="parallax-container">
+          <p className="text-white/40 text-sm tracking-[0.15em] uppercase mb-8">Представьте</p>
+          <h2 className="text-white text-4xl md:text-6xl lg:text-7xl font-bold tracking-[-0.03em] leading-[1.05] max-w-5xl">
+            Вы садитесь в машину. Солнце не слепит. Салон прохладный. 
+            <span className="text-white/40"> Ребёнок спокойно спит на заднем сиденье.</span>
+          </h2>
+          <p className="mt-8 md:mt-12 text-white/50 text-lg md:text-xl max-w-2xl leading-relaxed font-light">
+            Никаких присосок, которые отваливаются. Никакой тонировки, за которую штрафуют. 
+            Просто идеальная шторка, которая встает на место за секунду — и исчезает, когда не нужна.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ProductSection() {
+  const { ref, isVisible } = useScrollReveal();
+  const { ref: ref2, isVisible: isVisible2 } = useScrollReveal();
+
+  return (
+    <section id="product" className="relative section-dark">
+      {/* Full-width image */}
+      <div className="relative h-[80vh] md:h-screen overflow-hidden">
+        <div className="absolute inset-0">
+          <img src={PHOTOS.product1} alt="Каркасная автошторка VELES" className="w-full h-full object-cover img-zoom" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black" />
+        </div>
+        <div ref={ref} className={`absolute bottom-0 left-0 right-0 p-8 md:p-16 lg:p-24 reveal ${isVisible ? 'visible' : ''}`}>
+          <p className="text-white/50 text-sm tracking-[0.15em] uppercase mb-4">Продукт</p>
+          <h2 className="text-white text-4xl md:text-6xl lg:text-7xl font-bold tracking-[-0.03em] leading-[0.95] max-w-3xl">
+            Создано для тех, кто ценит каждую деталь.
+          </h2>
+        </div>
+      </div>
+
+      {/* Product details */}
+      <div className="py-24 md:py-40">
+        <div ref={ref2} className={`max-w-[1400px] mx-auto px-6 md:px-10 reveal ${isVisible2 ? 'visible' : ''}`}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+            <div>
+              <h3 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] leading-[1.1] mb-8">
+                Каждая шторка —<br />индивидуальна.
+              </h3>
+              <p className="text-white/50 text-lg leading-relaxed mb-6">
+                Мы не делаем универсальные решения. Каждая шторка VELES создаётся под конкретную модель автомобиля — 
+                с точностью до миллиметра. Стальной каркас повторяет геометрию вашего стекла.
+              </p>
+              <p className="text-white/50 text-lg leading-relaxed">
+                Результат — идеальная посадка, без зазоров и щелей. 
+                Выглядит как заводская опция, а не как aftermarket.
+              </p>
             </div>
+            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl">
+              <img src={PHOTOS.product2} alt="Детали шторки VELES" className="w-full h-full object-cover" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
-            <div className="pt-4">
-              <a href="#order" className="btn-premium inline-flex items-center gap-2 bg-[#c9a96e] text-black px-8 py-4 rounded-full font-semibold tracking-wide">
-                Подобрать для своего авто
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </a>
+function TechSection() {
+  const { ref, isVisible } = useScrollReveal();
+  const { ref: ref2, isVisible: isVisible2 } = useScrollReveal();
+  const { ref: ref3, isVisible: isVisible3 } = useScrollReveal();
+
+  return (
+    <section id="tech" className="relative section-dark">
+      {/* Magnets */}
+      <div className="py-24 md:py-40">
+        <div ref={ref} className={`max-w-[1400px] mx-auto px-6 md:px-10 reveal ${isVisible ? 'visible' : ''}`}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+            <div className="relative aspect-square overflow-hidden rounded-2xl order-2 lg:order-1">
+              <img src={PHOTOS.product3} alt="Магнитное крепление" className="w-full h-full object-cover" />
+            </div>
+            <div className="order-1 lg:order-2">
+              <p className="text-white/40 text-sm tracking-[0.15em] uppercase mb-4">Магнитное крепление</p>
+              <h3 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] leading-[1.1] mb-8">
+                Поставил. Снял.<br />Секундное дело.
+              </h3>
+              <p className="text-white/50 text-lg leading-relaxed mb-6">
+                Неодимовые магниты вшиты в каркас под резинкой. Шторка притягивается к металлической рамке двери — 
+                без клея, без скотча, без сверления.
+              </p>
+              <p className="text-white/50 text-lg leading-relaxed">
+                Краска не страдает. Обшивка не повреждается. 
+                Снять или поставить — одним движением руки.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Protection */}
+      <div className="py-24 md:py-40 bg-[#0a0a0a]">
+        <div ref={ref2} className={`max-w-[1400px] mx-auto px-6 md:px-10 reveal ${isVisible2 ? 'visible' : ''}`}>
+          <div className="text-center max-w-3xl mx-auto mb-16 md:mb-24">
+            <p className="text-white/40 text-sm tracking-[0.15em] uppercase mb-4">Защита</p>
+            <h3 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.02em] leading-[1.05]">
+              Всё, от чего вы устали — больше не проблема.
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                number: '01',
+                title: 'Солнце',
+                desc: 'Светопропускаемость 10%. Салон не нагревается. Кондиционер работает эффективнее.',
+              },
+              {
+                number: '02',
+                title: 'Насекомые',
+                desc: 'Мелкоячеистая сетка не пропускает мошек, комаров и пух. Окна можно держать открытыми.',
+              },
+              {
+                number: '03',
+                title: 'Приватность',
+                desc: 'Эффект тонировки без тонировки. Изнутри — отличный обзор. Снаружи — ничего не видно.',
+              },
+              {
+                number: '04',
+                title: 'Пыль',
+                desc: 'Салон остаётся чистым. Панель и обивка не выгорают. Меньше уборки.',
+              },
+            ].map((item, i) => (
+              <div key={i} className="feature-card p-8 rounded-2xl">
+                <span className="text-white/20 text-sm font-medium">{item.number}</span>
+                <h4 className="text-white text-xl font-semibold mt-4 mb-3">{item.title}</h4>
+                <p className="text-white/40 text-sm leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Materials */}
+      <div className="py-24 md:py-40">
+        <div ref={ref3} className={`max-w-[1400px] mx-auto px-6 md:px-10 reveal ${isVisible3 ? 'visible' : ''}`}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+            <div>
+              <p className="text-white/40 text-sm tracking-[0.15em] uppercase mb-4">Материалы</p>
+              <h3 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] leading-[1.1] mb-8">
+                Премиум в каждом элементе.
+              </h3>
+              <div className="space-y-6">
+                {[
+                  { label: 'Каркас', value: 'Стальная проволока 4 мм' },
+                  { label: 'Сетка', value: 'Премиум полиэстер, UV-стойкая' },
+                  { label: 'Магниты', value: 'Неодимовые N35' },
+                  { label: 'Хлястики', value: 'Натуральная кожа' },
+                  { label: 'Швы', value: 'Армированные нити, двойная строчка' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-baseline gap-4 border-b border-white/5 pb-4">
+                    <span className="text-white/30 text-sm w-28 flex-shrink-0">{item.label}</span>
+                    <span className="text-white text-base font-medium">{item.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl">
+              <img src={PHOTOS.gallery7} alt="Материалы VELES" className="w-full h-full object-cover" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function NumbersSection() {
+  const { ref, isVisible } = useScrollReveal();
+  const clients = useCountUp(2000, 2500, isVisible);
+  const models = useCountUp(500, 2500, isVisible);
+  const cities = useCountUp(150, 2500, isVisible);
+
+  return (
+    <section className="relative py-32 md:py-48 section-dark overflow-hidden">
+      <div ref={ref} className={`max-w-[1400px] mx-auto px-6 md:px-10 reveal ${isVisible ? 'visible' : ''}`}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-8">
+          <div className="text-center md:text-left">
+            <div className="number-large text-white counter">{clients}+</div>
+            <p className="text-white/40 text-base mt-4 tracking-[-0.01em]">довольных клиентов</p>
+          </div>
+          <div className="text-center md:text-left">
+            <div className="number-large text-white counter">{models}+</div>
+            <p className="text-white/40 text-base mt-4 tracking-[-0.01em]">моделей автомобилей</p>
+          </div>
+          <div className="text-center md:text-left">
+            <div className="number-large text-white counter">{cities}+</div>
+            <p className="text-white/40 text-base mt-4 tracking-[-0.01em]">городов доставки</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function InstallationSection() {
+  const { ref, isVisible } = useScrollReveal();
+
+  return (
+    <section className="relative py-24 md:py-40 bg-[#0a0a0a]">
+      <div ref={ref} className={`max-w-[1400px] mx-auto px-6 md:px-10 reveal ${isVisible ? 'visible' : ''}`}>
+        <div className="text-center max-w-3xl mx-auto mb-20 md:mb-28">
+          <p className="text-white/40 text-sm tracking-[0.15em] uppercase mb-4">Установка</p>
+          <h2 className="text-white text-4xl md:text-6xl lg:text-7xl font-bold tracking-[-0.03em] leading-[1.05]">
+            Пять секунд.
+          </h2>
+          <p className="mt-6 text-white/50 text-lg md:text-xl">
+            Никаких инструментов. Никаких инструкций. Просто приложите — магниты сделают всё сами.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+          {[
+            { step: '01', title: 'Приложите', desc: 'Поднесите шторку к оконному проёму' },
+            { step: '02', title: 'Магниты сработают', desc: 'Неодимовые магниты притянутся к рамке' },
+            { step: '03', title: 'Готово', desc: 'Шторка зафиксирована. Наслаждайтесь комфортом' },
+          ].map((item, i) => (
+            <div key={i} className="text-center">
+              <div className="text-7xl md:text-8xl font-bold text-white/[0.06] mb-4">{item.step}</div>
+              <h4 className="text-white text-xl font-semibold mb-2">{item.title}</h4>
+              <p className="text-white/40 text-sm">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ForWhoSection() {
+  const { ref, isVisible } = useScrollReveal();
+
+  return (
+    <section className="relative py-24 md:py-40 section-dark">
+      <div ref={ref} className={`max-w-[1400px] mx-auto px-6 md:px-10 reveal ${isVisible ? 'visible' : ''}`}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
+          <div>
+            <p className="text-white/40 text-sm tracking-[0.15em] uppercase mb-4">Для кого</p>
+            <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] leading-[1.1] mb-8">
+              Для тех, кто проводит<br />в машине жизнь.
+            </h2>
+            <p className="text-white/50 text-lg leading-relaxed">
+              Таксисты и дальнобойщики. Родители с маленькими детьми. Путешественники и те, 
+              кто каждый день стоит в пробках. Все, кто понимает: комфорт в дороге — это не роскошь, 
+              а необходимость.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="aspect-square overflow-hidden rounded-2xl">
+              <img src={PHOTOS.gallery5} alt="VELES на автомобиле" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+            </div>
+            <div className="aspect-square overflow-hidden rounded-2xl mt-8">
+              <img src={PHOTOS.gallery6} alt="VELES на автомобиле" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+            </div>
+            <div className="aspect-square overflow-hidden rounded-2xl -mt-8">
+              <img src={PHOTOS.gallery9} alt="VELES на автомобиле" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+            </div>
+            <div className="aspect-square overflow-hidden rounded-2xl">
+              <img src={PHOTOS.gallery10} alt="VELES на автомобиле" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
             </div>
           </div>
         </div>
@@ -394,67 +524,62 @@ function ProductShowcase() {
 }
 
 function ComparisonSection() {
-  const { ref, isVisible } = useScrollAnimation();
+  const { ref, isVisible } = useScrollReveal();
 
   return (
-    <section className="relative py-32 md:py-40 section-gradient">
-      <div className="max-w-7xl mx-auto px-6">
-        <SectionHeader
-          badge="Сравнение"
-          title="VELES vs Тонировка"
-          subtitle="Законная альтернатива тонировке без штрафов и ограничений"
-        />
+    <section className="relative py-24 md:py-40 bg-[#0a0a0a]">
+      <div ref={ref} className={`max-w-[1400px] mx-auto px-6 md:px-10 reveal ${isVisible ? 'visible' : ''}`}>
+        <div className="text-center max-w-3xl mx-auto mb-16 md:mb-24">
+          <p className="text-white/40 text-sm tracking-[0.15em] uppercase mb-4">Сравнение</p>
+          <h2 className="text-white text-4xl md:text-6xl font-bold tracking-[-0.03em] leading-[1.05]">
+            VELES vs Тонировка.
+          </h2>
+        </div>
 
-        <div ref={ref} className={`mt-16 animate-fade-up ${isVisible ? 'visible' : ''}`}>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* VELES */}
-            <div className="relative p-8 md:p-10 rounded-3xl border border-[#c9a96e]/30 bg-[#c9a96e]/[0.03]">
-              <div className="absolute top-6 right-6 px-3 py-1 rounded-full bg-[#c9a96e] text-black text-xs font-bold tracking-wide">
-                РЕКОМЕНДУЕМ
-              </div>
-              <h3 className="text-2xl font-bold text-[#c9a96e] mb-8 font-display">VELES</h3>
-              <ul className="space-y-4">
-                {[
-                  'Легально — не является тонировкой',
-                  'Снимаются за 10 секунд',
-                  'Не повреждают автомобиль',
-                  'Защита от пыли и насекомых',
-                  'Отличный обзор изнутри',
-                  'Многоразовое использование',
-                  'Доставка по всей России',
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-white/80">
-                    <svg className="w-5 h-5 text-[#c9a96e] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 max-w-4xl mx-auto">
+          <div className="p-8 md:p-10 rounded-3xl border border-white/20 bg-white/[0.02]">
+            <h3 className="text-white/30 text-xl font-semibold mb-8">Тонировка</h3>
+            <ul className="space-y-4">
+              {[
+                'Штрафы и предписания ГИБДД',
+                'Нельзя снять на месте',
+                'Повреждает стекло при демонтаже',
+                'Ухудшает обзор ночью',
+                'Одноразовое решение',
+              ].map((item, i) => (
+                <li key={i} className="flex items-start gap-3 text-white/25 text-sm">
+                  <span className="mt-0.5 w-4 h-4 rounded-full border border-white/10 flex-shrink-0 flex items-center justify-center">
+                    <span className="w-1.5 h-[1px] bg-white/20" />
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
 
-            {/* Тонировка */}
-            <div className="p-8 md:p-10 rounded-3xl border border-white/10 bg-white/[0.02]">
-              <h3 className="text-2xl font-bold text-white/40 mb-8 font-display">Обычная тонировка</h3>
-              <ul className="space-y-4">
-                {[
-                  'Штрафы и предписания',
-                  'Нельзя снять на месте',
-                  'Может повредить стекло при снятии',
-                  'Не защищает от пыли',
-                  'Ухудшает обзор в тёмное время',
-                  'Одноразовое решение',
-                  'Только в специализированном сервисе',
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-3 text-white/30">
-                    <svg className="w-5 h-5 text-white/20 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                    {item}
-                  </li>
-                ))}
-              </ul>
+          <div className="p-8 md:p-10 rounded-3xl border border-white/30 bg-white/[0.05]">
+            <div className="flex items-center gap-2 mb-8">
+              <h3 className="text-white text-xl font-semibold">VELES</h3>
+              <span className="text-[10px] text-white/40 border border-white/20 rounded-full px-2 py-0.5 uppercase tracking-wider">Рекомендуем</span>
             </div>
+            <ul className="space-y-4">
+              {[
+                'Полностью законно',
+                'Снимается за 10 секунд',
+                'Не повреждает автомобиль',
+                'Отличный обзор в любое время',
+                'Многоразовое использование',
+              ].map((item, i) => (
+                <li key={i} className="flex items-start gap-3 text-white/80 text-sm">
+                  <span className="mt-0.5 w-4 h-4 rounded-full border border-white/40 flex-shrink-0 flex items-center justify-center">
+                    <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>
@@ -462,157 +587,185 @@ function ComparisonSection() {
   );
 }
 
-function StatsSection() {
-  const { ref, isVisible } = useScrollAnimation();
-  const clients = useCountUp(2000, 2000, isVisible);
-  const cities = useCountUp(150, 2000, isVisible);
-  const models = useCountUp(500, 2000, isVisible);
-  const rating = useCountUp(49, 2000, isVisible);
+function GallerySection() {
+  const { ref, isVisible } = useScrollReveal();
 
-  return (
-    <section className="relative py-24 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-[#c9a96e]/5 via-transparent to-[#c9a96e]/5" />
-      <div ref={ref} className="max-w-7xl mx-auto px-6 relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-          {[
-            { value: `${clients}+`, label: 'Довольных клиентов', suffix: '' },
-            { value: `${cities}+`, label: 'Городов доставки', suffix: '' },
-            { value: `${models}+`, label: 'Моделей авто', suffix: '' },
-            { value: `${(rating / 10).toFixed(1)}`, label: 'Рейтинг на 2ГИС', suffix: '★' },
-          ].map((stat, i) => (
-            <div key={i} className="text-center">
-              <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-white counter-number">
-                {stat.value}{stat.suffix}
-              </div>
-              <div className="text-sm text-white/40 mt-2 tracking-wide">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function HowItWorks() {
-  const steps = [
-    {
-      number: '01',
-      title: 'Оставьте заявку',
-      description: 'Укажите марку, модель и год выпуска вашего автомобиля. Мы подберём идеальные шторки.',
-    },
-    {
-      number: '02',
-      title: 'Изготовление',
-      description: 'Каждая шторка изготавливается индивидуально под ваш автомобиль за 1-3 дня.',
-    },
-    {
-      number: '03',
-      title: 'Доставка',
-      description: 'Отправляем по всей России. Бережная упаковка гарантирует сохранность.',
-    },
-    {
-      number: '04',
-      title: 'Установка',
-      description: 'Просто приложите шторку к проёму — магниты зафиксируют её за 5 минут.',
-    },
+  const images = [
+    PHOTOS.gallery1, PHOTOS.gallery2, PHOTOS.gallery3,
+    PHOTOS.gallery4, PHOTOS.gallery5, PHOTOS.gallery6,
+    PHOTOS.gallery8, PHOTOS.gallery9, PHOTOS.gallery10,
   ];
 
   return (
-    <section id="about" className="relative py-32 md:py-40 section-gradient">
-      <div className="max-w-7xl mx-auto px-6">
-        <SectionHeader
-          badge="Как это работает"
-          title="От заявки до комфорта"
-          subtitle="Простой и понятный процесс в 4 шага"
-        />
+    <section id="gallery" className="relative py-24 md:py-40 section-dark">
+      <div ref={ref} className={`max-w-[1400px] mx-auto px-6 md:px-10 reveal ${isVisible ? 'visible' : ''}`}>
+        <div className="flex items-end justify-between mb-12 md:mb-16">
+          <div>
+            <p className="text-white/40 text-sm tracking-[0.15em] uppercase mb-4">Галерея</p>
+            <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em]">
+              Реальные установки.
+            </h2>
+          </div>
+          <a href="https://vk.com/avtoshtorki_abakan" target="_blank" rel="noopener noreferrer" className="hidden md:block text-white/40 hover:text-white text-sm transition-colors">
+            Больше фото в VK →
+          </a>
+        </div>
 
-        <div className="mt-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {steps.map((step, i) => (
-            <StepCard key={i} step={step} index={i} />
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+          {images.map((src, i) => (
+            <div key={i} className={`overflow-hidden rounded-xl ${i === 0 ? 'md:col-span-2 md:row-span-2' : ''} aspect-square`}>
+              <img 
+                src={src} 
+                alt={`VELES автошторки — установка ${i + 1}`} 
+                className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                loading="lazy"
+              />
+            </div>
           ))}
         </div>
       </div>
     </section>
-  );
-}
-
-function StepCard({ step, index }: { step: { number: string; title: string; description: string }; index: number }) {
-  const { ref, isVisible } = useScrollAnimation();
-
-  return (
-    <div
-      ref={ref}
-      className={`animate-fade-up ${isVisible ? 'visible' : ''}`}
-      style={{ transitionDelay: `${index * 150}ms` }}
-    >
-      <div className="relative group">
-        <span className="text-7xl md:text-8xl font-bold text-white/[0.03] font-display absolute -top-4 -left-2 group-hover:text-[#c9a96e]/10 transition-colors duration-500">
-          {step.number}
-        </span>
-        <div className="relative pt-8">
-          <div className="w-12 h-12 rounded-full border border-[#c9a96e]/30 flex items-center justify-center mb-6 group-hover:border-[#c9a96e] group-hover:bg-[#c9a96e]/10 transition-all duration-300">
-            <span className="text-[#c9a96e] font-bold text-sm">{step.number}</span>
-          </div>
-          <h3 className="text-lg font-semibold text-white mb-3">{step.title}</h3>
-          <p className="text-white/40 text-sm leading-relaxed">{step.description}</p>
-        </div>
-      </div>
-    </div>
   );
 }
 
 function ReviewsSection() {
+  const { ref, isVisible } = useScrollReveal();
+
   const reviews = [
     {
+      text: 'Заказал шторки на Камри — качество просто космос. Установил за 5 минут, магниты держат мёртво. Теперь в машине реально прохладно даже в +35.',
       name: 'Алексей К.',
       car: 'Toyota Camry',
-      text: 'Заказал шторки на Камри — качество просто космос! Установил за 5 минут, магниты держат мёртво. Теперь в машине прохладно даже в +35.',
-      rating: 5,
     },
     {
+      text: 'Ребёнок наконец-то спит в машине днём! Шторки блокируют солнце, а обзор для меня остаётся отличный. Рекомендую всем мамам.',
       name: 'Мария С.',
       car: 'Kia Sportage',
-      text: 'Ребёнок наконец-то спит в машине днём! Шторки блокируют солнце, а обзор для меня остаётся отличный. Рекомендую всем мамам!',
-      rating: 5,
     },
     {
+      text: 'Лучше любой тонировки. Законно, удобно, красиво. Снял за 10 секунд когда подъехал к посту — никаких проблем.',
       name: 'Дмитрий В.',
       car: 'Hyundai Tucson',
-      text: 'Лучше любой тонировки. Законно, удобно, красиво. Снял за 10 секунд когда подъехал к посту ДПС — никаких проблем.',
-      rating: 5,
     },
     {
+      text: 'Качество материалов на высоте. Кожаные хлястики, ровные швы, магниты мощные. Видно, что делали с душой.',
       name: 'Ольга П.',
       car: 'Volkswagen Tiguan',
-      text: 'Качество материалов на высоте. Кожаные хлястики, ровные швы, магниты мощные. Видно, что делали с душой.',
-      rating: 5,
     },
     {
+      text: 'Второй раз заказываю — теперь на вторую машину. Пыль перестала лететь в салон, насекомые тоже не пробираются.',
       name: 'Сергей М.',
       car: 'Mazda CX-5',
-      text: 'Второй раз заказываю — теперь на вторую машину. Пыль перестала лететь в салон, насекомые тоже не пробираются. Топ!',
-      rating: 5,
     },
     {
+      text: 'Подруга посоветовала — не пожалела ни секунды. Салон не выгорает, кондиционер работает эффективнее.',
       name: 'Анна Л.',
       car: 'Nissan X-Trail',
-      text: 'Подруга посоветовала — не пожалела ни секунды. Салон не выгорает, кондиционер работает эффективнее. Экономия на лицо!',
-      rating: 5,
     },
   ];
 
   return (
-    <section id="reviews" className="relative py-32 md:py-40 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6">
-        <SectionHeader
-          badge="Отзывы"
-          title="Нам доверяют"
-          subtitle="Более 2000 довольных клиентов по всей России"
-        />
+    <section id="reviews" className="relative py-24 md:py-40 bg-[#0a0a0a]">
+      <div ref={ref} className={`max-w-[1400px] mx-auto px-6 md:px-10 reveal ${isVisible ? 'visible' : ''}`}>
+        <div className="mb-16 md:mb-24">
+          <p className="text-white/40 text-sm tracking-[0.15em] uppercase mb-4">Отзывы</p>
+          <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em]">
+            Что говорят клиенты.
+          </h2>
+        </div>
 
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {reviews.map((review, i) => (
-            <ReviewCard key={i} review={review} delay={i * 100} />
+            <div key={i} className="feature-card p-8 rounded-2xl">
+              <p className="text-white/70 text-sm leading-relaxed mb-8">"{review.text}"</p>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                  <span className="text-white/60 text-xs font-medium">{review.name[0]}</span>
+                </div>
+                <div>
+                  <p className="text-white text-sm font-medium">{review.name}</p>
+                  <p className="text-white/30 text-xs">{review.car}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-12 text-center">
+          <a href="https://vk.com/avtoshtorki_abakan" target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white text-sm transition-colors inline-flex items-center gap-2">
+            Все отзывы на VK
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FAQSection() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const { ref, isVisible } = useScrollReveal();
+
+  const faqs = [
+    {
+      q: 'Подойдут ли шторки на мой автомобиль?',
+      a: 'Мы изготавливаем шторки индивидуально под каждую модель. У нас более 500 моделей в базе. Укажите марку, модель и год выпуска — мы подберём идеальный размер.',
+    },
+    {
+      q: 'Не ухудшится ли обзор?',
+      a: 'Мелкоячеистая премиум-сетка обеспечивает отличную прозрачность изнутри. Вы видите всё на дороге, при этом снаружи салон полностью скрыт.',
+    },
+    {
+      q: 'Как крепятся шторки?',
+      a: 'Неодимовые магниты вшиты в каркас и притягиваются к металлической рамке двери. Никакого клея, сверления или скотча — краска не повреждается.',
+    },
+    {
+      q: 'Можно ли опускать стёкла?',
+      a: 'Да, стёкла можно опускать — шторки остаются на месте благодаря магнитному креплению. При этом обеспечивается вентиляция без пыли и насекомых.',
+    },
+    {
+      q: 'Какой срок изготовления?',
+      a: 'Стандартный срок — 1-3 рабочих дня. Доставка по всей России занимает 3-7 дней в зависимости от региона.',
+    },
+    {
+      q: 'Это законно?',
+      a: 'Абсолютно. Каркасные автошторки не являются тонировкой и не подпадают под требования ТР ТС 014/2011. Никаких штрафов и ограничений.',
+    },
+  ];
+
+  return (
+    <section className="relative py-24 md:py-40 section-dark">
+      <div ref={ref} className={`max-w-3xl mx-auto px-6 md:px-10 reveal ${isVisible ? 'visible' : ''}`}>
+        <div className="text-center mb-16 md:mb-20">
+          <p className="text-white/40 text-sm tracking-[0.15em] uppercase mb-4">FAQ</p>
+          <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em]">
+            Частые вопросы.
+          </h2>
+        </div>
+
+        <div className="space-y-2">
+          {faqs.map((faq, i) => (
+            <div key={i} className={`border-b border-white/10 transition-colors duration-300 ${openIndex === i ? 'border-white/20' : ''}`}>
+              <button
+                onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                className="w-full py-6 flex items-center justify-between text-left"
+              >
+                <span className={`text-base md:text-lg font-medium transition-colors duration-300 ${openIndex === i ? 'text-white' : 'text-white/70'}`}>
+                  {faq.q}
+                </span>
+                <svg
+                  className={`w-5 h-5 text-white/40 transition-transform duration-500 flex-shrink-0 ml-4 ${openIndex === i ? 'rotate-45' : ''}`}
+                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
+                </svg>
+              </button>
+              <div className={`overflow-hidden transition-all duration-500 ${openIndex === i ? 'max-h-48 pb-6' : 'max-h-0'}`}>
+                <p className="text-white/40 text-sm leading-relaxed">{faq.a}</p>
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -620,46 +773,9 @@ function ReviewsSection() {
   );
 }
 
-function ReviewCard({ review, delay }: { review: { name: string; car: string; text: string; rating: number }; delay: number }) {
-  const { ref, isVisible } = useScrollAnimation();
-
-  return (
-    <div
-      ref={ref}
-      className={`animate-fade-up ${isVisible ? 'visible' : ''}`}
-      style={{ transitionDelay: `${delay}ms` }}
-    >
-      <div className="h-full p-6 rounded-2xl glass-effect hover:bg-white/[0.05] transition-all duration-500">
-        <div className="flex items-center gap-1 mb-4">
-          {Array.from({ length: review.rating }).map((_, i) => (
-            <svg key={i} className="w-4 h-4 text-[#c9a96e]" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-          ))}
-        </div>
-        <p className="text-white/60 text-sm leading-relaxed mb-6">"{review.text}"</p>
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-white font-medium text-sm">{review.name}</div>
-            <div className="text-white/30 text-xs">{review.car}</div>
-          </div>
-          <div className="w-8 h-8 rounded-full bg-[#c9a96e]/10 flex items-center justify-center">
-            <span className="text-[#c9a96e] text-xs font-bold">{review.name[0]}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function OrderSection() {
-  const { ref, isVisible } = useScrollAnimation();
-  const [formData, setFormData] = useState({
-    name: '',
-    car: '',
-    year: '',
-    phone: '',
-  });
+  const { ref, isVisible } = useScrollReveal();
+  const [formData, setFormData] = useState({ name: '', car: '', year: '', phone: '' });
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
@@ -670,84 +786,94 @@ function OrderSection() {
   }, []);
 
   return (
-    <section id="order" className="relative py-32 md:py-40 section-gradient">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full opacity-20"
-          style={{ background: 'radial-gradient(circle, rgba(201,169,110,0.2) 0%, transparent 60%)' }}
-        />
-      </div>
+    <section id="order" className="relative py-24 md:py-40 bg-[#0a0a0a]">
+      <div ref={ref} className={`max-w-3xl mx-auto px-6 md:px-10 reveal ${isVisible ? 'visible' : ''}`}>
+        <div className="text-center mb-12 md:mb-16">
+          <p className="text-white/40 text-sm tracking-[0.15em] uppercase mb-4">Заказ</p>
+          <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em]">
+            Закажите свои шторки.
+          </h2>
+          <p className="mt-4 text-white/40 text-lg">
+            Оставьте заявку — мы свяжемся в течение 30 минут.
+          </p>
+        </div>
 
-      <div className="max-w-4xl mx-auto px-6 relative z-10">
-        <SectionHeader
-          badge="Заказ"
-          title="Закажите шторки VELES"
-          subtitle="Оставьте заявку и мы свяжемся с вами в течение 30 минут"
-        />
-
-        <div ref={ref} className={`mt-16 animate-fade-up ${isVisible ? 'visible' : ''}`}>
-          {submitted ? (
-            <div className="text-center py-16 px-8 rounded-3xl glass-effect">
-              <div className="text-5xl mb-6">✓</div>
-              <h3 className="text-2xl font-bold text-white mb-3">Заявка отправлена!</h3>
-              <p className="text-white/50">Мы свяжемся с вами в ближайшее время</p>
+        {submitted ? (
+          <div className="text-center py-20 px-8 rounded-3xl border border-white/10">
+            <div className="w-16 h-16 rounded-full border border-white/20 flex items-center justify-center mx-auto mb-6">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
+              </svg>
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="p-8 md:p-12 rounded-3xl glass-effect gold-glow">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm text-white/50 tracking-wide">Ваше имя</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white placeholder-white/20 focus:border-[#c9a96e]/50 focus:outline-none transition-colors duration-300"
-                    placeholder="Как к вам обращаться?"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm text-white/50 tracking-wide">Марка и модель авто</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.car}
-                    onChange={(e) => setFormData({ ...formData, car: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white placeholder-white/20 focus:border-[#c9a96e]/50 focus:outline-none transition-colors duration-300"
-                    placeholder="Например: Toyota Camry"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm text-white/50 tracking-wide">Год выпуска</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.year}
-                    onChange={(e) => setFormData({ ...formData, year: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white placeholder-white/20 focus:border-[#c9a96e]/50 focus:outline-none transition-colors duration-300"
-                    placeholder="2024"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm text-white/50 tracking-wide">Телефон</label>
-                  <input
-                    type="tel"
-                    required
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white placeholder-white/20 focus:border-[#c9a96e]/50 focus:outline-none transition-colors duration-300"
-                    placeholder="+7 (___) ___-__-__"
-                  />
-                </div>
-              </div>
+            <h3 className="text-white text-2xl font-semibold mb-2">Заявка отправлена</h3>
+            <p className="text-white/40">Мы свяжемся с вами в ближайшее время</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <input
+                type="text" required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white placeholder-white/20 focus:border-white/30 focus:outline-none transition-colors text-sm"
+                placeholder="Ваше имя"
+              />
+              <input
+                type="text" required
+                value={formData.car}
+                onChange={(e) => setFormData({ ...formData, car: e.target.value })}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white placeholder-white/20 focus:border-white/30 focus:outline-none transition-colors text-sm"
+                placeholder="Марка и модель авто"
+              />
+              <input
+                type="text" required
+                value={formData.year}
+                onChange={(e) => setFormData({ ...formData, year: e.target.value })}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white placeholder-white/20 focus:border-white/30 focus:outline-none transition-colors text-sm"
+                placeholder="Год выпуска"
+              />
+              <input
+                type="tel" required
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white placeholder-white/20 focus:border-white/30 focus:outline-none transition-colors text-sm"
+                placeholder="Телефон"
+              />
+            </div>
+            <button type="submit" className="btn-primary w-full py-4 rounded-full text-sm font-medium mt-4">
+              Отправить заявку
+            </button>
+            <p className="text-white/20 text-xs text-center mt-3">Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности</p>
+          </form>
+        )}
+      </div>
+    </section>
+  );
+}
 
-              <div className="mt-8 text-center">
-                <button type="submit" className="btn-premium w-full md:w-auto bg-[#c9a96e] text-black px-12 py-4 rounded-full text-base font-semibold tracking-wide">
-                  Отправить заявку
-                </button>
-                <p className="mt-4 text-white/30 text-xs">Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности</p>
-              </div>
-            </form>
-          )}
+function FinalCTASection() {
+  const { ref, isVisible } = useScrollReveal();
+
+  return (
+    <section className="relative py-32 md:py-48 lg:py-64 section-dark overflow-hidden">
+      <div className="absolute inset-0">
+        <img src={PHOTOS.gallery1} alt="" className="w-full h-full object-cover opacity-20" />
+        <div className="absolute inset-0 bg-black/70" />
+      </div>
+      <div ref={ref} className={`relative z-10 max-w-[1400px] mx-auto px-6 md:px-10 text-center reveal-slow ${isVisible ? 'visible' : ''}`}>
+        <h2 className="text-white text-4xl md:text-6xl lg:text-[5rem] xl:text-[6rem] font-bold tracking-[-0.03em] leading-[1.0] max-w-4xl mx-auto">
+          Ваше следующее<br />поездка может быть<br />другой.
+        </h2>
+        <p className="mt-8 md:mt-10 text-white/50 text-lg md:text-xl max-w-xl mx-auto leading-relaxed">
+          Один заказ — и каждый день за рулём станет комфортнее. Начните сегодня.
+        </p>
+        <div className="mt-10 md:mt-14 flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a href="#order" className="btn-primary px-10 py-4 rounded-full text-sm">
+            Оформить заказ
+          </a>
+          <a href="tel:+79134421234" className="btn-secondary px-10 py-4 rounded-full text-sm">
+            +7 (913) 442-12-34
+          </a>
         </div>
       </div>
     </section>
@@ -755,277 +881,53 @@ function OrderSection() {
 }
 
 function ContactsSection() {
-  const { ref, isVisible } = useScrollAnimation();
+  const { ref, isVisible } = useScrollReveal();
 
   return (
-    <section id="contacts" className="relative py-32 md:py-40">
-      <div className="max-w-7xl mx-auto px-6">
-        <SectionHeader
-          badge="Контакты"
-          title="Свяжитесь с нами"
-          subtitle="Мы всегда на связи и готовы ответить на ваши вопросы"
-        />
-
-        <div ref={ref} className={`mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 animate-fade-up ${isVisible ? 'visible' : ''}`}>
-          {[
-            {
-              icon: '📱',
-              title: 'Телефон',
-              value: '+7 (913) 442-12-34',
-              link: 'tel:+79134421234',
-              subtitle: 'Ежедневно с 9:00 до 21:00',
-            },
-            {
-              icon: '💬',
-              title: 'WhatsApp',
-              value: 'Написать в WhatsApp',
-              link: 'https://wa.me/79134421234',
-              subtitle: 'Ответим за 5 минут',
-            },
-            {
-              icon: '📍',
-              title: 'Адрес',
-              value: 'г. Абакан, Республика Хакасия',
-              link: '#',
-              subtitle: 'Доставка по всей России',
-            },
-          ].map((contact, i) => (
-            <a
-              key={i}
-              href={contact.link}
-              className="group p-8 rounded-2xl glass-effect hover:bg-white/[0.05] transition-all duration-500 text-center hover:scale-[1.02]"
-            >
-              <div className="text-4xl mb-4">{contact.icon}</div>
-              <h3 className="text-white/40 text-sm tracking-wide mb-2">{contact.title}</h3>
-              <p className="text-white font-medium text-lg group-hover:text-[#c9a96e] transition-colors duration-300">{contact.value}</p>
-              <p className="text-white/30 text-sm mt-2">{contact.subtitle}</p>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function FAQSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-  const faqs = [
-    {
-      question: 'Подойдут ли шторки на мой автомобиль?',
-      answer: 'Мы изготавливаем шторки индивидуально под каждую модель автомобиля. У нас более 500 моделей в базе. Просто укажите марку, модель и год выпуска при заказе — мы подберём идеальный размер.',
-    },
-    {
-      question: 'Не ухудшится ли обзор?',
-      answer: 'Нет! Мелкоячеистая премиум-сетка обеспечивает отличную прозрачность изнутри. Вы видите всё, что происходит на дороге, при этом снаружи салон полностью скрыт. Это как тонировка, но законная.',
-    },
-    {
-      question: 'Как крепятся шторки?',
-      answer: 'Шторки крепятся на неодимовые магниты, вшитые в каркас. Магниты притягиваются непосредственно к металлической рамке двери. Никакого клея, сверления или скотча — краска и обшивка не повреждаются.',
-    },
-    {
-      question: 'Можно ли опускать стёкла с шторками?',
-      answer: 'Да, вы можете опускать стёкла — шторки остаются на месте благодаря магнитному креплению. При этом обеспечивается вентиляция салона без пыли и насекомых.',
-    },
-    {
-      question: 'Какой срок изготовления?',
-      answer: 'Стандартный срок изготовления — 1-3 рабочих дня. После этого отправляем заказ по всей России. Доставка обычно занимает 3-7 дней в зависимости от региона.',
-    },
-    {
-      question: 'Это законно? Не будет ли штрафов?',
-      answer: 'Абсолютно законно! Каркасные автошторки не являются тонировкой и не подпадают под требования ТР ТС 014/2011. Вы можете использовать их без ограничений и штрафов.',
-    },
-  ];
-
-  return (
-    <section className="relative py-32 md:py-40 section-gradient">
-      <div className="max-w-4xl mx-auto px-6">
-        <SectionHeader
-          badge="FAQ"
-          title="Частые вопросы"
-          subtitle="Ответы на самые популярные вопросы о наших шторках"
-        />
-
-        <div className="mt-16 space-y-4">
-          {faqs.map((faq, i) => (
-            <FAQItem
-              key={i}
-              faq={faq}
-              isOpen={openIndex === i}
-              onToggle={() => setOpenIndex(openIndex === i ? null : i)}
-              delay={i * 50}
-            />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function FAQItem({ faq, isOpen, onToggle, delay }: { faq: { question: string; answer: string }; isOpen: boolean; onToggle: () => void; delay: number }) {
-  const { ref, isVisible } = useScrollAnimation();
-
-  return (
-    <div
-      ref={ref}
-      className={`animate-fade-up ${isVisible ? 'visible' : ''}`}
-      style={{ transitionDelay: `${delay}ms` }}
-    >
-      <div className={`rounded-2xl border transition-all duration-500 ${isOpen ? 'border-[#c9a96e]/30 bg-[#c9a96e]/[0.03]' : 'border-white/10 bg-white/[0.02]'}`}>
-        <button
-          onClick={onToggle}
-          className="w-full px-6 py-5 flex items-center justify-between text-left"
-        >
-          <span className={`text-base font-medium transition-colors duration-300 ${isOpen ? 'text-[#c9a96e]' : 'text-white/80'}`}>
-            {faq.question}
-          </span>
-          <svg
-            className={`w-5 h-5 text-[#c9a96e] transition-transform duration-500 flex-shrink-0 ml-4 ${isOpen ? 'rotate-180' : ''}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-        <div className={`overflow-hidden transition-all duration-500 ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-          <p className="px-6 pb-5 text-white/50 text-sm leading-relaxed">
-            {faq.answer}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function GuaranteeSection() {
-  const { ref, isVisible } = useScrollAnimation();
-
-  return (
-    <section className="relative py-32 md:py-40">
-      <div className="max-w-7xl mx-auto px-6">
-        <SectionHeader
-          badge="Гарантии"
-          title="Ваша уверенность — наш приоритет"
-          subtitle="Мы уверены в качестве нашей продукции и подкрепляем это гарантиями"
-        />
-
-        <div ref={ref} className={`mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 animate-fade-up ${isVisible ? 'visible' : ''}`}>
-          {[
-            {
-              icon: (
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-              ),
-              title: 'Гарантия 1 год',
-              description: 'Если что-то пойдёт не так — заменим бесплатно. Мы уверены в каждом изделии.',
-            },
-            {
-              icon: (
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              ),
-              title: 'Возврат 14 дней',
-              description: 'Не подошли шторки? Вернём деньги без лишних вопросов в течение 14 дней.',
-            },
-            {
-              icon: (
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              ),
-              title: 'Поддержка 24/7',
-              description: 'Всегда на связи. Поможем с выбором, установкой и любыми вопросами.',
-            },
-          ].map((item, i) => (
-            <div key={i} className="group text-center p-8 rounded-2xl glass-effect hover:bg-white/[0.05] transition-all duration-500">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-[#c9a96e]/30 text-[#c9a96e] mb-6 group-hover:border-[#c9a96e] group-hover:bg-[#c9a96e]/10 transition-all duration-500">
-                {item.icon}
+    <section id="contacts" className="relative py-24 md:py-40 section-dark">
+      <div ref={ref} className={`max-w-[1400px] mx-auto px-6 md:px-10 reveal ${isVisible ? 'visible' : ''}`}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24">
+          <div>
+            <p className="text-white/40 text-sm tracking-[0.15em] uppercase mb-4">Контакты</p>
+            <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] leading-[1.1] mb-8">
+              Свяжитесь с нами.
+            </h2>
+            <p className="text-white/50 text-lg leading-relaxed mb-12">
+              Мы всегда на связи. Поможем подобрать шторки для вашего автомобиля, 
+              ответим на вопросы и оформим заказ.
+            </p>
+            <div className="space-y-8">
+              <div>
+                <p className="text-white/30 text-xs tracking-[0.15em] uppercase mb-2">Телефон</p>
+                <a href="tel:+79134421234" className="text-white text-xl md:text-2xl font-medium hover:text-white/80 transition-colors">
+                  +7 (913) 442-12-34
+                </a>
               </div>
-              <h3 className="text-lg font-semibold text-white mb-3">{item.title}</h3>
-              <p className="text-white/40 text-sm leading-relaxed">{item.description}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function GallerySection() {
-  const { ref, isVisible } = useScrollAnimation();
-
-  const galleryItems = [
-    { title: 'Седан', desc: 'Идеальная посадка' },
-    { title: 'Кроссовер', desc: 'Надёжная защита' },
-    { title: 'Внедорожник', desc: 'Максимальный комфорт' },
-    { title: 'Хэтчбек', desc: 'Стильное решение' },
-    { title: 'Универсал', desc: 'Полный комплект' },
-    { title: 'Минивэн', desc: 'Комфорт семьи' },
-  ];
-
-  return (
-    <section className="relative py-32 md:py-40 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6">
-        <SectionHeader
-          badge="Галерея"
-          title="На любом автомобиле"
-          subtitle="Шторки VELES изготавливаются под каждую модель — идеальная геометрия гарантирована"
-        />
-
-        <div ref={ref} className={`mt-16 grid grid-cols-2 md:grid-cols-3 gap-4 animate-scale ${isVisible ? 'visible' : ''}`}>
-          {galleryItems.map((item, i) => (
-            <div
-              key={i}
-              className="group relative aspect-[4/3] rounded-2xl overflow-hidden glass-effect hover:scale-[1.02] transition-all duration-500 cursor-pointer"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-[#c9a96e]/10 via-transparent to-[#c9a96e]/5" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 md:w-20 md:h-20 mx-auto rounded-xl border border-[#c9a96e]/20 flex items-center justify-center mb-3 group-hover:border-[#c9a96e]/50 group-hover:bg-[#c9a96e]/10 transition-all duration-500">
-                    <svg className="w-8 h-8 md:w-10 md:h-10 text-[#c9a96e]/60 group-hover:text-[#c9a96e] transition-colors duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2zM9 7h6M9 11h6M9 15h4" />
-                    </svg>
-                  </div>
-                  <h4 className="text-white font-medium text-sm md:text-base">{item.title}</h4>
-                  <p className="text-white/30 text-xs mt-1">{item.desc}</p>
-                </div>
+              <div>
+                <p className="text-white/30 text-xs tracking-[0.15em] uppercase mb-2">WhatsApp</p>
+                <a href="https://wa.me/79134421234" className="text-white text-xl md:text-2xl font-medium hover:text-white/80 transition-colors">
+                  Написать
+                </a>
               </div>
-              <div className="absolute inset-0 border border-[#c9a96e]/0 group-hover:border-[#c9a96e]/30 rounded-2xl transition-all duration-500" />
+              <div>
+                <p className="text-white/30 text-xs tracking-[0.15em] uppercase mb-2">Адрес</p>
+                <p className="text-white text-xl md:text-2xl font-medium">
+                  г. Абакан, ул. Ровная 16
+                </p>
+              </div>
+              <div>
+                <p className="text-white/30 text-xs tracking-[0.15em] uppercase mb-2">Режим работы</p>
+                <p className="text-white text-xl md:text-2xl font-medium">
+                  Пн-Вс: 9:00 — 18:00
+                </p>
+              </div>
             </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function CTABanner() {
-  const { ref, isVisible } = useScrollAnimation();
-
-  return (
-    <section className="relative py-24 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-[#c9a96e]/10 via-[#c9a96e]/5 to-[#c9a96e]/10" />
-      <div className="absolute inset-0" style={{
-        backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(201,169,110,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(201,169,110,0.1) 0%, transparent 50%)',
-      }} />
-      
-      <div ref={ref} className={`max-w-4xl mx-auto px-6 relative z-10 text-center animate-fade-up ${isVisible ? 'visible' : ''}`}>
-        <h2 className="text-3xl md:text-5xl font-bold text-white font-display leading-tight">
-          Готовы к <span className="text-gradient">комфорту</span>?
-        </h2>
-        <p className="mt-6 text-lg text-white/40 max-w-xl mx-auto">
-          Закажите шторки VELES сегодня и почувствуйте разницу уже завтра
-        </p>
-        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <a href="#order" className="btn-premium bg-[#c9a96e] text-black px-10 py-4 rounded-full text-base font-semibold tracking-wide">
-            Оформить заказ
-          </a>
-          <a href="tel:+79134421234" className="btn-premium border border-white/20 text-white px-10 py-4 rounded-full text-base font-medium tracking-wide hover:border-[#c9a96e]/50 hover:text-[#c9a96e]">
-            Позвонить нам
-          </a>
+          </div>
+          <div className="flex items-center justify-center">
+            <div className="w-full aspect-square rounded-3xl overflow-hidden">
+              <img src={PHOTOS.gallery8} alt="VELES производство" className="w-full h-full object-cover" />
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -1034,108 +936,25 @@ function CTABanner() {
 
 function Footer() {
   return (
-    <footer className="relative py-16 border-t border-white/5">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-          <div className="md:col-span-2">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full border border-[#c9a96e]/50 flex items-center justify-center">
-                <span className="font-display text-[#c9a96e] font-bold text-lg">V</span>
-              </div>
-              <span className="font-display text-xl tracking-wider text-white">VELES</span>
-            </div>
-            <p className="text-white/40 text-sm leading-relaxed max-w-sm">
-              Производство каркасных автошторок премиум-класса на магнитном креплении. Качество, проверенное временем.
-            </p>
+    <footer className="py-12 border-t border-white/5">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-10">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-6">
+            <span className="text-white font-semibold tracking-tight">VELES</span>
+            <span className="text-white/20 text-sm">Каркасные автошторки</span>
           </div>
-
-          <div>
-            <h4 className="text-white/60 text-sm font-medium tracking-wide mb-4">Навигация</h4>
-            <ul className="space-y-3">
-              {['Преимущества', 'Продукция', 'О нас', 'Отзывы', 'Контакты'].map((item, i) => (
-                <li key={i}>
-                  <a href={`#${['features', 'products', 'about', 'reviews', 'contacts'][i]}`} className="text-white/30 hover:text-[#c9a96e] text-sm transition-colors duration-300">
-                    {item}
-                  </a>
-                </li>
-              ))}
-            </ul>
+          <div className="flex items-center gap-6">
+            <a href="https://vk.com/avtoshtorki_abakan" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-white text-sm transition-colors">
+              VK
+            </a>
+            <a href="tel:+79134421234" className="text-white/30 hover:text-white text-sm transition-colors">
+              +7 (913) 442-12-34
+            </a>
           </div>
-
-          <div>
-            <h4 className="text-white/60 text-sm font-medium tracking-wide mb-4">Контакты</h4>
-            <ul className="space-y-3">
-              <li className="text-white/30 text-sm">+7 (913) 442-12-34</li>
-              <li className="text-white/30 text-sm">г. Абакан</li>
-              <li className="text-white/30 text-sm">autoveles.ru</li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-white/20 text-xs">© 2024 VELES. Все права защищены.</p>
-          <p className="text-white/20 text-xs">Каркасные автошторки премиум-класса</p>
+          <p className="text-white/15 text-xs">© 2024 VELES. Все права защищены.</p>
         </div>
       </div>
     </footer>
-  );
-}
-
-function SectionHeader({ badge, title, subtitle }: { badge: string; title: string; subtitle: string }) {
-  const { ref, isVisible } = useScrollAnimation();
-
-  return (
-    <div ref={ref} className={`text-center max-w-3xl mx-auto animate-fade-up ${isVisible ? 'visible' : ''}`}>
-      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[#c9a96e]/20 bg-[#c9a96e]/5 mb-6">
-        <span className="text-[#c9a96e] text-xs tracking-[0.2em] uppercase font-medium">{badge}</span>
-      </div>
-      <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white font-display leading-tight">
-        {title}
-      </h2>
-      <p className="mt-6 text-lg text-white/40 leading-relaxed">{subtitle}</p>
-      <div className="mt-8 mx-auto w-24 h-px bg-gradient-to-r from-transparent via-[#c9a96e]/50 to-transparent line-reveal" />
-    </div>
-  );
-}
-
-function CursorGlow() {
-  const glowRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (glowRef.current) {
-        glowRef.current.style.left = `${e.clientX}px`;
-        glowRef.current.style.top = `${e.clientY}px`;
-      }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
-  return <div ref={glowRef} className="cursor-glow hidden lg:block" />;
-}
-
-function ScrollProgress() {
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const currentProgress = (window.scrollY / totalHeight) * 100;
-      setProgress(currentProgress);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  return (
-    <div className="fixed top-0 left-0 w-full h-[2px] z-[100]">
-      <div
-        className="h-full bg-gradient-to-r from-[#c9a96e] to-[#e8d5a3] transition-all duration-150 ease-out"
-        style={{ width: `${progress}%` }}
-      />
-    </div>
   );
 }
 
@@ -1144,22 +963,22 @@ function ScrollProgress() {
 export default function App() {
   return (
     <div className="relative">
-      <div className="noise-overlay" />
       <ScrollProgress />
-      <CursorGlow />
       <Navigation />
       <HeroSection />
-      <FeaturesSection />
-      <ProductShowcase />
+      <ManifestoSection />
+      <ProductSection />
+      <VisionSection />
+      <TechSection />
+      <NumbersSection />
+      <InstallationSection />
+      <ForWhoSection />
       <ComparisonSection />
-      <StatsSection />
-      <HowItWorks />
-      <GuaranteeSection />
-      <ReviewsSection />
       <GallerySection />
+      <ReviewsSection />
       <FAQSection />
       <OrderSection />
-      <CTABanner />
+      <FinalCTASection />
       <ContactsSection />
       <Footer />
     </div>
