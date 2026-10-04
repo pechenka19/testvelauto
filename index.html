@@ -2,22 +2,34 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5" />
+    <meta name="theme-color" content="#000000" />
     <title>VELES — Каркасные Автошторки Премиум-Класса</title>
     <meta name="description" content="Каркасные автошторки VELES премиум-класса на магнитном креплении. Защита от солнца, пыли и посторонних взглядов. Установка за 5 минут." />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
       html, body {
         margin: 0;
         padding: 0;
         width: 100%;
         min-height: 100%;
+        min-height: 100dvh;
         overflow-x: hidden;
+        background: #000;
       }
       * {
         box-sizing: border-box;
+      }
+      /* Prevent iOS zoom on input focus */
+      input, select, textarea {
+        font-size: 16px;
+      }
+      @media (min-width: 768px) {
+        input, select, textarea {
+          font-size: inherit;
+        }
       }
     </style>
   </head>
