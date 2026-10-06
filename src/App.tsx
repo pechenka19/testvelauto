@@ -231,18 +231,17 @@ function Catalog() {
   );
 }
 
-// ============ ORDER FORMS ============
-function OrderForms() {
+// ============ ORDER FORM ============
+function OrderForm() {
   const { ref, visible } = useReveal();
-  const [formType, setFormType] = useState<'existing' | 'custom'>('existing');
-  const [form, setForm] = useState({ name: '', car: '', year: '', phone: '', customCar: '', customYear: '', customComment: '' });
+  const [form, setForm] = useState({ name: '', car: '', year: '', phone: '' });
   const [done, setDone] = useState(false);
 
   const submit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     setDone(true);
     setTimeout(() => setDone(false), 5000);
-    setForm({ name: '', car: '', year: '', phone: '', customCar: '', customYear: '', customComment: '' });
+    setForm({ name: '', car: '', year: '', phone: '' });
   }, []);
 
   return (
@@ -251,23 +250,7 @@ function OrderForms() {
         <div className="text-center mb-10">
           <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Заказ</p>
           <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em]">Закажите шторки VELES</h2>
-          <p className="mt-4 text-white/40 text-sm md:text-base">Свяжемся в течение 30 минут</p>
-        </div>
-
-        {/* Form type selector */}
-        <div className="flex gap-2 mb-8 p-1 bg-white/5 rounded-full">
-          <button
-            onClick={() => setFormType('existing')}
-            className={`flex-1 py-3 rounded-full text-sm font-medium transition-all ${formType === 'existing' ? 'bg-white text-black' : 'text-white/60'}`}
-          >
-            Есть лекало
-          </button>
-          <button
-            onClick={() => setFormType('custom')}
-            className={`flex-1 py-3 rounded-full text-sm font-medium transition-all ${formType === 'custom' ? 'bg-white text-black' : 'text-white/60'}`}
-          >
-            Индивидуальное изготовление
-          </button>
+          <p className="mt-4 text-white/40 text-sm md:text-base">Укажите ваш автомобиль — мы проверим наличие лекала и свяжемся с вами</p>
         </div>
 
         {done ? (
@@ -278,7 +261,7 @@ function OrderForms() {
               </svg>
             </div>
             <h3 className="text-white text-xl font-semibold mb-1">Заявка отправлена</h3>
-            <p className="text-white/40 text-sm">Мы свяжемся с вами</p>
+            <p className="text-white/40 text-sm">Мы проверим наличие лекала и свяжемся с вами в течение 30 минут</p>
           </div>
         ) : (
           <form onSubmit={submit} className="space-y-3">
@@ -296,48 +279,20 @@ function OrderForms() {
               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
               placeholder="Телефон"
             />
-            
-            {formType === 'existing' ? (
-              <>
-                <input
-                  type="text" required
-                  value={form.car}
-                  onChange={e => setForm({ ...form, car: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
-                  placeholder="Марка и модель авто (например: Toyota Camry 50)"
-                />
-                <input
-                  type="text" required
-                  value={form.year}
-                  onChange={e => setForm({ ...form, year: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
-                  placeholder="Год выпуска"
-                />
-              </>
-            ) : (
-              <>
-                <input
-                  type="text" required
-                  value={form.customCar}
-                  onChange={e => setForm({ ...form, customCar: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
-                  placeholder="Марка и модель авто (например: Chery Tiggo 7 Pro Max)"
-                />
-                <input
-                  type="text" required
-                  value={form.customYear}
-                  onChange={e => setForm({ ...form, customYear: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
-                  placeholder="Год выпуска"
-                />
-                <textarea
-                  value={form.customComment}
-                  onChange={e => setForm({ ...form, customComment: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm min-h-[100px] resize-none"
-                  placeholder="Дополнительная информация (необязательно)"
-                />
-              </>
-            )}
+            <input
+              type="text" required
+              value={form.car}
+              onChange={e => setForm({ ...form, car: e.target.value })}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
+              placeholder="Марка и модель авто (например: Toyota Camry)"
+            />
+            <input
+              type="text" required
+              value={form.year}
+              onChange={e => setForm({ ...form, year: e.target.value })}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
+              placeholder="Год выпуска"
+            />
 
             <button type="submit" className="w-full bg-white text-black py-3.5 rounded-full text-sm font-medium mt-2 hover:bg-gray-200 transition-colors">
               Отправить заявку
@@ -715,7 +670,7 @@ export default function App() {
       <Guarantee />
       <Reviews />
       <FAQ />
-      <OrderForms />
+      <OrderForm />
       <Contacts />
       <Footer />
     </div>
