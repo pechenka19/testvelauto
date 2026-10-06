@@ -6,7 +6,7 @@ function useReveal() {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     if (!ref.current) return;
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setVisible(true); }, { threshold: 0.1 });
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setVisible(true); }, { threshold: 0.15 });
     obs.observe(ref.current);
     return () => obs.disconnect();
   }, []);
@@ -38,7 +38,7 @@ function useWordReveal() {
       if (!ref.current) return;
       const r = ref.current.getBoundingClientRect();
       const wh = window.innerHeight;
-      const p = Math.max(0, Math.min(1, (wh * 0.8 - r.top) / (wh * 0.6)));
+      const p = Math.max(0, Math.min(1, (wh * 0.7 - r.top) / (wh * 0.5)));
       const n = Math.floor(p * words.length);
       words.forEach((w, i) => w.classList.toggle('active', i < n));
     };
@@ -49,22 +49,23 @@ function useWordReveal() {
   return ref;
 }
 
-// ============ PHOTOS ============
-const P = {
-  hero: 'https://sun9-13.vkuserphoto.ru/s/v1/ig2/zFbcuceL2RhzNyaDMQfQLb6PUkMp-zJ782RHnx4ydYtDzaD6qexltBgqr-ErhUGnqOcTr5Y9OBAOaTzj-Ot_owp3.jpg?quality=95&crop=256,0,2048,1152&from=bu&u=K3w7mhYXJHgK4ldAnxuT9yEX1gyRRfZkSPNih-2BTYY&cs=2048x0',
-  p1: 'https://sun9-7.vkuserphoto.ru/s/v1/ig2/uzMbsL18hLFPQsNqx60WYvTlwVKFelNy4bRDk2fWabopIEuOmqA2wxx-114qrbPsAcPkPNRFMEVb6SptCUmAldd1.jpg?quality=95&crop=0,0,2560,1920&from=bu&u=SRNzGGrdCJyOmQ5tFs1BiC4UnzZwoCbJqwfRa4SrOKk&cs=2560x0',
-  p2: 'https://sun9-59.vkuserphoto.ru/s/v1/ig2/73wlTEHSUOJFeStg7NqlwbVp_wK7iWmC-Zsyn1kzuby4fSpl9iuaxhpRx0f-bz0NBd8k3s4VG798o9dfytlyjnfn.jpg?quality=95&as=32x43,48x64,72x96,108x144,160x213,240x320,360x480,480x640,540x720,640x853,720x960,1080x1440,1280x1707,1440x1920,1920x2560&from=bu&u=QbiYUxVCg1xucOgyQCsge1l_aez8VJGdUR6HEFx_lR4&cs=1920x0',
-  p3: 'https://sun9-68.vkuserphoto.ru/s/v1/ig2/u2Yep-q10rjkasBC84VyBrgB5NlUUMkI4hz2f-bHRHusrDFoBR4hmGhpvqDlDXBvY6rkrxoW-qC1oPhtWmtY2jhq.jpg?quality=95&as=32x43,48x64,72x96,108x144,160x213,240x320,360x480,480x640,540x720,640x853,720x960,1080x1440,1280x1707,1440x1920,1920x2560&from=bu&u=3psrzXdNT7wb7CjPs6oDM6g8S75qYbHdMtnc9_r5sBg&cs=1920x0',
+// ============ IMAGES ============
+const IMG = {
+  // AI-generated cinematic images
+  interior: 'https://image.qwenlm.ai/generated-images/d0e0b6e4-c499-44be-abc5-64bb90d440c0/_result.png',
+  mesh: 'https://image.qwenlm.ai/generated-images/3d2aa903-eae8-429f-9a47-9e62a1945c89/_result.png',
+  road: 'https://image.qwenlm.ai/generated-images/2cb7f130-60dd-49af-9071-0ac69e7bc247/_result.png',
+  product: 'https://image.qwenlm.ai/generated-images/c75109ad-4c99-461e-a19b-783babc61d80/_result.png',
+  family: 'https://image.qwenlm.ai/generated-images/8c7c6ed3-a831-42a2-a162-f005e3e4151a/_result.png',
+  texture: 'https://image.qwenlm.ai/generated-images/bea8753d-292b-48d5-a58f-b0be8e370dd2/_result.png',
+  showroom: 'https://image.qwenlm.ai/generated-images/db83c049-01b8-4739-bb50-595c7812c193/_result.png',
+  // Real VK photos
   g1: 'https://sun9-7.vkuserphoto.ru/s/v1/ig2/eispSnwz9X2hrEO3Pbdqn_Lj1gRSMOLXQm6opejaSun3IXeK0grWUgfckGEsfniYsJA59BFxn9Yw7deQ5WrXL1ZA.jpg?quality=95&as=32x16,48x24,72x36,108x55,160x81,240x122,360x183,480x243,540x274,640x324,720x365,1080x548,1280x649,1440x730,2560x1298&from=bu&u=abw07EHPYE9OcjffAY1JjvMHdN9TZUq-ZTNlo4550-E&cs=2560x0',
   g2: 'https://sun9-70.vkuserphoto.ru/s/v1/ig2/NAOdZchuN80mZQJ58HqHteSqfv4BMoMKkaDwWTb3b4zEoseNtZ8vDxEnkra4qfaLsqa5h5Sib5VsdR0VEpb4kCjB.jpg?quality=95&as=32x14,48x22,72x32,108x49,160x72,240x108,360x162,480x216,540x243,640x288,720x324,1080x486,1280x576,1440x648,2560x1152&from=bu&u=cxMX70Bym5-VTuqISqk7KIUpAFq0BR3UIYoiwCL4o_I&cs=2560x0',
-  g3: 'https://sun9-9.vkuserphoto.ru/s/v1/ig2/qVgVA4MgeRC_kC8LjGFxtfwmF3m-3nl290Jo0Xd33K_3uXr-NgxxSHvemqH1W6WB4Ui5uo0Yjj1NC-XjzmB8y51z.jpg?quality=95&as=32x14,48x22,72x32,108x49,160x72,240x108,360x162,480x216,540x243,640x288,720x324,1080x486,1280x576,1440x648,2560x1152&from=bu&u=opi_XlzFHTeBVWvcyAWT8ApY3kqMFP-SiOAQ1Co33f4&cs=2560x0',
-  g4: 'https://sun9-45.vkuserphoto.ru/s/v1/ig2/GnuybaSFQweWS-eeypzELlQ-T6evqy8xQagcTCNlgbHnlKAapTOwxA_sNSP2nDdZmBBJ1_tmx8wM5hXiiQYwJTAD.jpg?quality=95&as=32x14,48x22,72x32,108x49,160x72,240x108,360x162,480x216,540x243,640x288,720x324,1080x486,1280x576,1440x648,2560x1152&from=bu&u=7qeRQjF0ZXgaxdjygqeN0CtmsgT_q2CUMpPv6tPSung&cs=2560x0',
-  g5: 'https://sun9-65.vkuserphoto.ru/s/v1/ig2/rdaWAna1J2iGcLmUtOhnwo4d4G5y-UnfQQF9a89T_OhGLWzstD312N8xkPsLUb5fcfyIsBv296ozMWRoYHF-xyJE.jpg?quality=95&as=32x24,48x36,72x54,108x81,160x120,240x180,360x270,480x360,540x405,640x480,720x540,1080x810,1280x960,1440x1080,2560x1920&from=bu&u=n32Y1_-jZQshbq-GvSEMCM76QghSD6BmuLH2GknIy3M&cs=2560x0',
-  g6: 'https://sun9-54.vkuserphoto.ru/s/v1/ig2/KK44fuf5HhFQN9wkgZ4Msem2OeOIsFOd79FESZ6D0Q_gK_LjdJmxng0aH7epqicFAhMUx-fNxPHN4gYYWk3SPqwa.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x360,540x304,640x360,720x405,1080x607,1280x720,1440x810,2560x1440&from=bu&u=4RjyCr0zEoOEzUmqHeIRn5B_k9kiWLuzV3syZ0Q3w1c&cs=2560x0',
-  g7: 'https://sun9-17.vkuserphoto.ru/s/v1/ig2/NGbjY5kEA4Yxg4k6m-cFWaX1y3SCvw5jCk8renHr5eNpQfOG9qnTQ2NdumkPca-mYmdU25s6Ssc0Hcju8qQDUagn.jpg?quality=95&crop=0,0,1707,2560&from=bu&u=1WfV4OVllsShwmNVnCt3DUBxzjMSGTiDiTHA9ibFrF4&cs=1707x0',
-  g8: 'https://sun9-34.vkuserphoto.ru/s/v1/ig2/K8Gwoe4egTnBf3TQ7qGMG20jsWiuX5X2zySdLARIv_drZk-yCpl4Ul7kxOv5Cjn9P3vAGsUKf99uVtHdGOHX4AYg.jpg?quality=95&as=32x45,48x68,72x102,108x153,160x226,240x339,360x509,480x679,540x764,640x905,720x1018,1080x1527,1191x1684&from=bu&u=ozG8KPGAX22-DaXhgozmmbEamFGwgLIodhlaWJzsTnA&cs=1191x0',
-  g9: 'https://sun9-5.vkuserphoto.ru/s/v1/ig2/8AeAE7ff8ZdAjIPmj9lfGu1BfzaaTcR-4l-v5i5JCSHwwqMlxLSxFHZd71RrI91gsNFZ_SpimT_9Kk4qIN62poAy.jpg?quality=95&as=32x24,48x36,72x54,108x81,160x120,240x180,360x270,480x360,540x405,640x480,720x540,1080x810,1280x960&from=bu&u=44Dwwp-Ykk5o9gxzqVF4luR4PrXJYWCQdY1HKsWMw4I&cs=1280x0',
-  g10: 'https://sun9-41.vkuserphoto.ru/s/v1/ig2/ZVKX_jucXzMo9fJyXcsNhrcMS7-SXKlgBtUBGrn0R85NtQhge0D70Fj6QlMRkrmRjKCGzdGx2tgkzO3_hWL02Ucw.jpg?quality=95&as=32x57,48x85,72x128,108x192,160x284,240x427,360x640,480x853,540x960,640x1138,720x1280,900x1600&from=bu&u=dFwkuajeaHs38gCXQAIl5tn6rkMB92AjMol6bO84Wwk&cs=900x0',
+  g3: 'https://sun9-65.vkuserphoto.ru/s/v1/ig2/rdaWAna1J2iGcLmUtOhnwo4d4G5y-UnfQQF9a89T_OhGLWzstD312N8xkPsLUb5fcfyIsBv296ozMWRoYHF-xyJE.jpg?quality=95&as=32x24,48x36,72x54,108x81,160x120,240x180,360x270,480x360,540x405,640x480,720x540,1080x810,1280x960,1440x1080,2560x1920&from=bu&u=n32Y1_-jZQshbq-GvSEMCM76QghSD6BmuLH2GknIy3M&cs=2560x0',
+  g4: 'https://sun9-54.vkuserphoto.ru/s/v1/ig2/KK44fuf5HhFQN9wkgZ4Msem2OeOIsFOd79FESZ6D0Q_gK_LjdJmxng0aH7epqicFAhMUx-fNxPHN4gYYWk3SPqwa.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x360,540x304,640x360,720x405,1080x607,1280x720,1440x810,2560x1440&from=bu&u=4RjyCr0zEoOEzUmqHeIRn5B_k9kiWLuzV3syZ0Q3w1c&cs=2560x0',
+  g5: 'https://sun9-17.vkuserphoto.ru/s/v1/ig2/NGbjY5kEA4Yxg4k6m-cFWaX1y3SCvw5jCk8renHr5eNpQfOG9qnTQ2NdumkPca-mYmdU25s6Ssc0Hcju8qQDUagn.jpg?quality=95&crop=0,0,1707,2560&from=bu&u=1WfV4OVllsShwmNVnCt3DUBxzjMSGTiDiTHA9ibFrF4&cs=1707x0',
+  g6: 'https://sun9-34.vkuserphoto.ru/s/v1/ig2/K8Gwoe4egTnBf3TQ7qGMG20jsWiuX5X2zySdLARIv_drZk-yCpl4Ul7kxOv5Cjn9P3vAGsUKf99uVtHdGOHX4AYg.jpg?quality=95&as=32x45,48x68,72x102,108x153,160x226,240x339,360x509,480x679,540x764,640x905,720x1018,1080x1527,1191x1684&from=bu&u=ozG8KPGAX22-DaXhgozmmbEamFGwgLIodhlaWJzsTnA&cs=1191x0',
 };
 
 // ============ NAV ============
@@ -81,14 +82,14 @@ function Nav() {
     return () => { document.body.style.overflow = ''; };
   }, [open]);
 
-  const links = [['Продукт', '#product'], ['Технологии', '#tech'], ['Галерея', '#gallery'], ['Отзывы', '#reviews']];
-
   return (
-    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${scrolled ? 'py-3 bg-black/90 backdrop-blur-xl' : 'py-5 bg-transparent'}`}>
+    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${scrolled ? 'py-3 bg-black/90 backdrop-blur-2xl' : 'py-5 bg-transparent'}`}>
       <div className="max-w-[1440px] mx-auto px-5 md:px-10 flex items-center justify-between">
-        <a href="#hero" className="text-lg font-semibold tracking-tight text-white">VELES</a>
+        <a href="#hero" className="text-xl font-semibold tracking-tight">VELES</a>
         <div className="hidden md:flex items-center gap-8">
-          {links.map(([l, h]) => <a key={h} href={h} className="text-[13px] text-white/70 hover:text-white transition-colors">{l}</a>)}
+          {[['Продукт', '#product'], ['Технологии', '#tech'], ['Галерея', '#gallery'], ['Отзывы', '#reviews']].map(([l, h]) => (
+            <a key={h} href={h} className="text-[13px] text-white/70 hover:text-white transition-colors">{l}</a>
+          ))}
         </div>
         <a href="#order" className="hidden md:block btn-primary px-5 py-2 rounded-full text-[13px]">Заказать</a>
         <button onClick={() => setOpen(!open)} className="md:hidden w-10 h-10 flex flex-col items-center justify-center gap-1.5" aria-label="Меню">
@@ -97,9 +98,9 @@ function Nav() {
           <span className={`w-5 h-[1.5px] bg-white transition-all ${open ? '-rotate-45 -translate-y-[4px]' : ''}`} />
         </button>
       </div>
-      <div className={`md:hidden fixed inset-0 bg-black z-40 transition-all duration-300 ${open ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
+      <div className={`md:hidden fixed inset-0 bg-black z-40 transition-all duration-500 ${open ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
         <div className="flex flex-col items-center justify-center h-full gap-8">
-          {[...links, ['Заказать', '#order']].map(([l, h]) => (
+          {[['Продукт', '#product'], ['Технологии', '#tech'], ['Галерея', '#gallery'], ['Отзывы', '#reviews'], ['Заказать', '#order']].map(([l, h]) => (
             <a key={h} href={h} onClick={() => setOpen(false)} className="text-2xl text-white/80">{l}</a>
           ))}
         </div>
@@ -111,20 +112,20 @@ function Nav() {
 // ============ HERO ============
 function Hero() {
   return (
-    <section id="hero" className="relative h-[100svh] min-h-[550px] flex items-end overflow-hidden">
-      <img src={P.hero} alt="" className="absolute inset-0 w-full h-full object-cover" />
-      <div className="absolute inset-0 overlay-full" />
-      <div className="relative z-10 max-w-[1440px] mx-auto px-5 md:px-10 pb-16 md:pb-24 w-full">
-        <p className="text-white/70 text-xs md:text-sm tracking-[0.2em] uppercase mb-4 animate-fade-in-up delay-300">Каркасные автошторки</p>
-        <h1 className="text-white text-[clamp(2.5rem,7vw,6rem)] font-bold tracking-[-0.03em] leading-[0.95] animate-fade-in-up delay-500">
-          Комфорт,<br />который вы<br />заслужили.
+    <section id="hero" className="relative h-[100svh] min-h-[600px] flex items-end overflow-hidden">
+      <img src={IMG.road} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <div className="absolute inset-0 overlay-gradient" />
+      <div className="relative z-10 max-w-[1440px] mx-auto px-5 md:px-10 pb-20 md:pb-32 w-full">
+        <p className="text-white/60 text-xs md:text-sm tracking-[0.3em] uppercase mb-5 animate-fade-in-up delay-300">Каркасные автошторки</p>
+        <h1 className="text-white text-[clamp(3rem,9vw,8rem)] font-bold tracking-[-0.04em] leading-[0.9] animate-fade-in-up delay-500">
+          Комфорт.<br />Без компромиссов.
         </h1>
-        <p className="mt-5 md:mt-8 text-white/70 text-sm md:text-xl max-w-lg leading-relaxed animate-fade-in-up delay-700">
+        <p className="mt-6 md:mt-8 text-white/60 text-base md:text-xl max-w-lg leading-relaxed font-light animate-fade-in-up delay-700">
           Защита от солнца, пыли и насекомых. Магнитное крепление. Установка за 5 секунд.
         </p>
-        <div className="mt-6 md:mt-10 flex flex-col sm:flex-row gap-3 animate-fade-in-up delay-1000">
-          <a href="#order" className="btn-primary px-7 py-3 rounded-full text-sm text-center">Заказать</a>
-          <a href="#product" className="btn-secondary px-7 py-3 rounded-full text-sm text-center">Подробнее</a>
+        <div className="mt-8 md:mt-12 flex flex-col sm:flex-row gap-3 animate-fade-in-up delay-1000">
+          <a href="#order" className="btn-primary px-8 py-3.5 rounded-full text-sm text-center">Заказать</a>
+          <a href="#product" className="btn-secondary px-8 py-3.5 rounded-full text-sm text-center">Подробнее</a>
         </div>
       </div>
     </section>
@@ -134,13 +135,13 @@ function Hero() {
 // ============ MANIFESTO ============
 function Manifesto() {
   const ref = useWordReveal();
-  const text = "Каждый день за рулём — это борьба. Солнце слепит. Салон раскаляется. Насекомые летят в лицо. Дети капризничают. Мы решили это изменить. VELES — это новый стандарт комфорта. Создано для тех, кто понимает: дорога должна приносить удовольствие.";
+  const text = "Каждый день за рулём — это борьба. Солнце слепит. Салон раскаляется. Насекомые летят в лицо. Дети капризничают. Мы решили это изменить. VELES — это новый стандарт комфорта в автомобиле. Создано для тех, кто понимает: дорога должна приносить удовольствие, а не стресс.";
   const words = text.split(' ');
   return (
-    <section className="py-20 md:py-32 bg-black">
+    <section className="relative min-h-[100svh] flex items-center bg-black py-20 md:py-32">
       <div ref={ref} className="max-w-[1200px] mx-auto px-5 md:px-10 word-reveal">
-        <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-6">Философия</p>
-        <p className="text-white text-xl md:text-4xl lg:text-5xl font-bold tracking-[-0.02em] leading-[1.2]">
+        <p className="text-white/20 text-xs tracking-[0.3em] uppercase mb-8">Философия</p>
+        <p className="text-white text-2xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] leading-[1.15]">
           {words.map((w, i) => <span key={i} className="word">{w}</span>)}
         </p>
       </div>
@@ -148,51 +149,20 @@ function Manifesto() {
   );
 }
 
-// ============ FULL-WIDTH IMAGE ============
-function FullImage({ src, caption }: { src: string; caption?: string }) {
+// ============ FULL-WIDTH CINEMATIC ============
+function Cinematic({ src, children }: { src: string; children?: React.ReactNode }) {
   const { ref, visible } = useReveal();
   return (
-    <section ref={ref} className="relative h-[60vh] md:h-[80vh] overflow-hidden">
+    <section ref={ref} className="relative h-[80vh] md:h-[100svh] overflow-hidden">
       <img src={src} alt="" className={`w-full h-full object-cover transition-transform duration-[2s] ${visible ? 'scale-100' : 'scale-110'}`} />
-      {caption && (
-        <div className="absolute bottom-0 left-0 right-0 p-5 md:p-10 overlay-bottom">
-          <p className="text-white/80 text-sm md:text-base">{caption}</p>
-        </div>
-      )}
+      <div className="absolute inset-0 overlay-gradient" />
+      {children && <div className="absolute inset-0 flex items-end">{children}</div>}
     </section>
   );
 }
 
-// ============ PRODUCT SECTION ============
+// ============ PRODUCT STICKY ============
 function Product() {
-  const { ref, visible } = useReveal();
-  return (
-    <section id="product" className="bg-black">
-      <div ref={ref} className={`py-16 md:py-24 px-5 md:px-10 max-w-[1440px] mx-auto reveal ${visible ? 'visible' : ''}`}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
-          <div>
-            <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-4">Продукт</p>
-            <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] leading-[1.05] mb-6">
-              Каждая шторка — индивидуальна.
-            </h2>
-            <p className="text-white/50 text-sm md:text-lg leading-relaxed mb-4">
-              Мы не делаем универсальные решения. Каждая шторка создаётся под конкретную модель автомобиля — с точностью до миллиметра.
-            </p>
-            <p className="text-white/50 text-sm md:text-lg leading-relaxed">
-              Стальной каркас повторяет геометрию вашего стекла. Результат — идеальная посадка, без зазоров и щелей.
-            </p>
-          </div>
-          <div className="aspect-[4/5] rounded-2xl overflow-hidden">
-            <img src={P.p2} alt="" className="w-full h-full object-cover" />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ============ TECH STICKY (desktop) / SIMPLE (mobile) ============
-function Tech() {
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -201,32 +171,28 @@ function Tech() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  const stories = [
-    { title: 'Идеальная посадка', text: 'Стальной каркас повторяет геометрию вашего стекла. Без зазоров. Без щелей.', img: P.g5 },
-    { title: 'Неодимовые магниты', text: 'Вшиты в каркас. Шторка притягивается к рамке двери — без клея, без скотча.', img: P.p3 },
-    { title: 'Премиум-сетка', text: 'Отличная прозрачность изнутри. Снаружи — ничего не видно. Эффект тонировки.', img: P.g2 },
-    { title: 'Натуральная кожа', text: 'Хлястики из кожи с логотипом VELES. Тактильно приятно. Не выцветает.', img: P.p2 },
+  const slides = [
+    { img: IMG.interior, title: 'Идеальная посадка', text: 'Каждая шторка создаётся под вашу модель автомобиля — с точностью до миллиметра.' },
+    { img: IMG.mesh, title: 'Премиум-сетка', text: 'Мелкоячеистая структура. Отличный обзор изнутри. Полная приватность снаружи.' },
+    { img: IMG.texture, title: 'Натуральная кожа', text: 'Хлястики из кожи с логотипом VELES. Тактильно приятно. Не выцветает.' },
+    { img: IMG.product, title: 'Стальной каркас', text: 'Проволока 4 мм. Армированные нити. Двойная строчка. Качество на годы.' },
   ];
 
   if (isMobile) {
     return (
-      <section id="tech" className="bg-black py-16 md:py-24">
+      <section id="product" className="bg-black py-20">
         <div className="max-w-[1440px] mx-auto px-5 md:px-10">
-          <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-4">Технологии</p>
-          <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-10 md:mb-16">Что внутри.</h2>
-          <div className="space-y-10 md:space-y-16">
-            {stories.map((s, i) => (
-              <div key={i} className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-12 items-center">
-                <div className={i % 2 === 1 ? 'md:order-2' : ''}>
-                  <div className="aspect-[4/3] rounded-xl overflow-hidden">
-                    <img src={s.img} alt={s.title} className="w-full h-full object-cover" loading="lazy" />
-                  </div>
+          <p className="text-white/20 text-xs tracking-[0.3em] uppercase mb-4">Продукт</p>
+          <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.03em] mb-12">Совершенство в деталях.</h2>
+          <div className="space-y-12">
+            {slides.map((s, i) => (
+              <div key={i}>
+                <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-4">
+                  <img src={s.img} alt={s.title} className="w-full h-full object-cover" loading="lazy" />
                 </div>
-                <div className={i % 2 === 1 ? 'md:order-1' : ''}>
-                  <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-2">{String(i + 1).padStart(2, '0')}</p>
-                  <h3 className="text-white text-2xl md:text-3xl font-bold tracking-[-0.02em] mb-3">{s.title}</h3>
-                  <p className="text-white/50 text-sm md:text-base leading-relaxed">{s.text}</p>
-                </div>
+                <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-2">{String(i + 1).padStart(2, '0')}</p>
+                <h3 className="text-white text-xl md:text-2xl font-semibold mb-2">{s.title}</h3>
+                <p className="text-white/50 text-sm md:text-base leading-relaxed">{s.text}</p>
               </div>
             ))}
           </div>
@@ -235,10 +201,10 @@ function Tech() {
     );
   }
 
-  return <StickyTech stories={stories} />;
+  return <StickyProduct slides={slides} />;
 }
 
-function StickyTech({ stories }: { stories: { title: string; text: string; img: string }[] }) {
+function StickyProduct({ slides }: { slides: { img: string; title: string; text: string }[] }) {
   const [idx, setIdx] = useState(0);
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -249,36 +215,36 @@ function StickyTech({ stories }: { stories: { title: string; text: string; img: 
       const h = wrapRef.current.offsetHeight;
       const wh = window.innerHeight;
       const p = Math.max(0, Math.min(1, -r.top / (h - wh)));
-      setIdx(Math.min(stories.length - 1, Math.floor(p * stories.length)));
+      setIdx(Math.min(slides.length - 1, Math.floor(p * slides.length)));
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener('scroll', onScroll);
-  }, [stories.length]);
+  }, [slides.length]);
 
   return (
-    <section id="tech" ref={wrapRef} style={{ height: `${stories.length * 100}vh` }}>
+    <section id="product" ref={wrapRef} style={{ height: `${slides.length * 100}vh` }}>
       <div className="sticky top-0 h-[100svh] overflow-hidden">
-        {stories.map((s, i) => (
-          <div key={i} className={`absolute inset-0 transition-opacity duration-700 ${i === idx ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        {slides.map((s, i) => (
+          <div key={i} className={`absolute inset-0 transition-opacity duration-1000 ${i === idx ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
             <img src={s.img} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 overlay-left" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent" />
           </div>
         ))}
         <div className="relative z-10 h-full flex items-center">
           <div className="max-w-[1440px] mx-auto px-5 md:px-10 w-full">
-            <div className="max-w-lg">
-              <p className="text-white/40 text-xs tracking-[0.2em] uppercase mb-3">Технологии — {String(idx + 1).padStart(2, '0')}</p>
-              <h3 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] leading-[1.05] mb-4">
-                {stories[idx].title}
+            <div className="max-w-xl">
+              <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Продукт — {String(idx + 1).padStart(2, '0')}</p>
+              <h3 className="text-white text-4xl md:text-6xl lg:text-7xl font-bold tracking-[-0.03em] leading-[0.95] mb-5">
+                {slides[idx].title}
               </h3>
-              <p className="text-white/60 text-sm md:text-lg leading-relaxed">{stories[idx].text}</p>
+              <p className="text-white/60 text-base md:text-xl leading-relaxed">{slides[idx].text}</p>
             </div>
           </div>
         </div>
-        <div className="absolute right-5 md:right-10 top-1/2 -translate-y-1/2 flex flex-col gap-2">
-          {stories.map((_, i) => (
-            <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all ${i === idx ? 'bg-white scale-150' : 'bg-white/30'}`} />
+        <div className="absolute right-5 md:right-10 top-1/2 -translate-y-1/2 flex flex-col gap-3">
+          {slides.map((_, i) => (
+            <div key={i} className={`w-2 h-2 rounded-full transition-all ${i === idx ? 'bg-white scale-125' : 'bg-white/20'}`} />
           ))}
         </div>
       </div>
@@ -294,19 +260,19 @@ function Stats() {
   const c3 = useCountUp(150, visible);
 
   return (
-    <section className="bg-[#0a0a0a] py-16 md:py-24">
+    <section className="bg-[#0a0a0a] py-20 md:py-32">
       <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16">
           {[
             { v: c1, s: '+', l: 'Довольных клиентов' },
             { v: c2, s: '+', l: 'Моделей автомобилей' },
             { v: c3, s: '+', l: 'Городов доставки' },
           ].map((x, i) => (
             <div key={i} className="text-center md:text-left">
-              <div className="text-5xl md:text-7xl lg:text-8xl font-bold text-white counter tracking-[-0.03em] leading-none">
+              <div className="text-6xl md:text-8xl lg:text-9xl font-bold text-white counter tracking-[-0.04em] leading-none">
                 {x.v}{x.s}
               </div>
-              <p className="text-white/30 text-xs md:text-sm mt-3 tracking-wide">{x.l}</p>
+              <p className="text-white/25 text-xs md:text-sm mt-4 tracking-wide">{x.l}</p>
             </div>
           ))}
         </div>
@@ -315,8 +281,8 @@ function Stats() {
   );
 }
 
-// ============ PROTECTION ============
-function Protection() {
+// ============ FEATURES ============
+function Features() {
   const { ref, visible } = useReveal();
   const staggerRef = useRef<HTMLDivElement>(null);
   const [sv, setSv] = useState(false);
@@ -335,17 +301,17 @@ function Protection() {
   ];
 
   return (
-    <section className="bg-black py-16 md:py-24">
+    <section className="bg-black py-20 md:py-32">
       <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
-        <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-4">Защита</p>
-        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] leading-[1.05] mb-10 md:mb-16 max-w-3xl">
+        <p className="text-white/20 text-xs tracking-[0.3em] uppercase mb-4">Защита</p>
+        <h2 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] leading-[1.05] mb-12 md:mb-20 max-w-3xl">
           Всё, от чего вы устали — больше не проблема.
         </h2>
         <div ref={staggerRef} className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children ${sv ? 'visible' : ''}`}>
           {items.map((x, i) => (
-            <div key={i} className="feature-card p-6 rounded-2xl">
-              <span className="text-white/15 text-xs font-medium">{x.n}</span>
-              <h4 className="text-white text-lg font-semibold mt-3 mb-2">{x.t}</h4>
+            <div key={i} className="feature-card p-6 md:p-8 rounded-2xl">
+              <span className="text-white/10 text-xs font-medium">{x.n}</span>
+              <h4 className="text-white text-lg md:text-xl font-semibold mt-4 mb-3">{x.t}</h4>
               <p className="text-white/40 text-sm leading-relaxed">{x.d}</p>
             </div>
           ))}
@@ -359,36 +325,27 @@ function Protection() {
 function Installation() {
   const { ref, visible } = useReveal();
   return (
-    <section className="bg-[#0a0a0a] py-16 md:py-24">
-      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
-          <div>
-            <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-4">Установка</p>
-            <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] leading-[1.05] mb-8">
-              Пять секунд.<br />Без инструментов.
-            </h2>
-            <div className="space-y-5">
-              {[
-                { s: '01', t: 'Приложите', d: 'Поднесите шторку к оконному проёму' },
-                { s: '02', t: 'Магниты сработают', d: 'Неодимовые магниты притянутся к рамке' },
-                { s: '03', t: 'Готово', d: 'Шторка зафиксирована. Наслаждайтесь' },
-              ].map((x, i) => (
-                <div key={i} className="flex gap-4">
-                  <span className="text-white/10 text-2xl md:text-4xl font-bold flex-shrink-0 w-10">{x.s}</span>
-                  <div>
-                    <h4 className="text-white text-base md:text-lg font-semibold mb-1">{x.t}</h4>
-                    <p className="text-white/40 text-sm">{x.d}</p>
-                  </div>
-                </div>
-              ))}
+    <Cinematic src={IMG.showroom}>
+      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 pb-20 md:pb-32 w-full reveal ${visible ? 'visible' : ''}`}>
+        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Установка</p>
+        <h2 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] leading-[0.95] mb-8">
+          Пять секунд.<br />Без инструментов.
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12 max-w-3xl">
+          {[
+            { s: '01', t: 'Приложите', d: 'Поднесите шторку к оконному проёму' },
+            { s: '02', t: 'Магниты сработают', d: 'Неодимовые магниты притянутся к рамке' },
+            { s: '03', t: 'Готово', d: 'Шторка зафиксирована. Наслаждайтесь' },
+          ].map((x, i) => (
+            <div key={i}>
+              <span className="text-white/10 text-3xl md:text-5xl font-bold">{x.s}</span>
+              <h4 className="text-white text-lg font-semibold mt-2 mb-1">{x.t}</h4>
+              <p className="text-white/40 text-sm">{x.d}</p>
             </div>
-          </div>
-          <div className="aspect-[4/5] rounded-2xl overflow-hidden">
-            <img src={P.g10} alt="" className="w-full h-full object-cover" />
-          </div>
+          ))}
         </div>
       </div>
-    </section>
+    </Cinematic>
   );
 }
 
@@ -396,20 +353,20 @@ function Installation() {
 function Comparison() {
   const { ref, visible } = useReveal();
   return (
-    <section className="bg-black py-16 md:py-24">
+    <section className="bg-[#0a0a0a] py-20 md:py-32">
       <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
-        <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-4 text-center">Сравнение</p>
-        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] text-center mb-10 md:mb-16">
+        <p className="text-white/20 text-xs tracking-[0.3em] uppercase mb-4 text-center">Сравнение</p>
+        <h2 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] text-center mb-12 md:mb-20">
           VELES vs Тонировка
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 max-w-4xl mx-auto">
           <div className="p-6 md:p-10 rounded-2xl border border-white/10 bg-white/[0.02]">
-            <h3 className="text-white/30 text-lg md:text-xl font-semibold mb-6">Тонировка</h3>
+            <h3 className="text-white/25 text-lg md:text-xl font-semibold mb-6">Тонировка</h3>
             <ul className="space-y-3">
               {['Штрафы ГИБДД', 'Нельзя снять на месте', 'Повреждает стекло', 'Ухудшает обзор ночью', 'Одноразовое решение'].map((x, i) => (
-                <li key={i} className="flex items-start gap-3 text-white/25 text-sm">
-                  <span className="mt-1.5 w-3 h-3 rounded-full border border-white/15 flex-shrink-0 flex items-center justify-center">
-                    <span className="w-1.5 h-[1px] bg-white/25" />
+                <li key={i} className="flex items-start gap-3 text-white/20 text-sm">
+                  <span className="mt-1.5 w-3 h-3 rounded-full border border-white/10 flex-shrink-0 flex items-center justify-center">
+                    <span className="w-1.5 h-[1px] bg-white/20" />
                   </span>
                   {x}
                 </li>
@@ -443,28 +400,46 @@ function Comparison() {
 // ============ GALLERY ============
 function Gallery() {
   const { ref, visible } = useReveal();
-  const images = [P.g1, P.g2, P.g3, P.g4, P.g5, P.g6, P.g8, P.g9, P.g10];
+  const images = [IMG.g1, IMG.g2, IMG.g3, IMG.g4, IMG.g5, IMG.g6];
   return (
-    <section id="gallery" className="bg-black py-16 md:py-24">
+    <section id="gallery" className="bg-black py-20 md:py-32">
       <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
         <div className="flex items-end justify-between mb-8 md:mb-12">
           <div>
-            <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-3">Галерея</p>
-            <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em]">Реальные установки.</h2>
+            <p className="text-white/20 text-xs tracking-[0.3em] uppercase mb-3">Галерея</p>
+            <h2 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em]">Реальные установки.</h2>
           </div>
-          <a href="https://vk.com/avtoshtorki_abakan" target="_blank" rel="noopener noreferrer" className="hidden md:block text-white/40 hover:text-white text-sm transition-colors">
+          <a href="https://vk.com/avtoshtorki_abakan" target="_blank" rel="noopener noreferrer" className="hidden md:block text-white/30 hover:text-white text-sm transition-colors">
             VK →
           </a>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
           {images.map((src, i) => (
-            <div key={i} className={`aspect-square rounded-lg md:rounded-xl overflow-hidden ${i === 0 ? 'md:col-span-2 md:row-span-2' : ''}`}>
-              <img src={src} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" loading="lazy" />
+            <div key={i} className={`aspect-square rounded-lg md:rounded-2xl overflow-hidden ${i === 0 ? 'md:col-span-2 md:row-span-2' : ''}`}>
+              <img src={src} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" loading="lazy" />
             </div>
           ))}
         </div>
       </div>
     </section>
+  );
+}
+
+// ============ LIFESTYLE ============
+function Lifestyle() {
+  const { ref, visible } = useReveal();
+  return (
+    <Cinematic src={IMG.family}>
+      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 pb-20 md:pb-32 w-full reveal ${visible ? 'visible' : ''}`}>
+        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Для кого</p>
+        <h2 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] leading-[0.95] max-w-2xl">
+          Для тех, кто проводит в машине жизнь.
+        </h2>
+        <p className="mt-6 text-white/50 text-base md:text-xl max-w-lg leading-relaxed">
+          Таксисты и дальнобойщики. Родители с детьми. Путешественники. Все, кто понимает: комфорт в дороге — это не роскошь, а необходимость.
+        </p>
+      </div>
+    </Cinematic>
   );
 }
 
@@ -490,14 +465,14 @@ function Reviews() {
   ];
 
   return (
-    <section id="reviews" className="bg-[#0a0a0a] py-16 md:py-24">
+    <section id="reviews" className="bg-[#0a0a0a] py-20 md:py-32">
       <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
-        <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-4">Отзывы</p>
-        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-8 md:mb-12">Что говорят клиенты.</h2>
+        <p className="text-white/20 text-xs tracking-[0.3em] uppercase mb-4">Отзывы</p>
+        <h2 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] mb-10 md:mb-16">Что говорят клиенты.</h2>
         <div ref={staggerRef} className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children ${sv ? 'visible' : ''}`}>
           {reviews.map((r, i) => (
-            <div key={i} className="feature-card p-6 rounded-2xl">
-              <p className="text-white/70 text-sm leading-relaxed mb-5">"{r.t}"</p>
+            <div key={i} className="feature-card p-6 md:p-8 rounded-2xl">
+              <p className="text-white/70 text-sm leading-relaxed mb-6">"{r.t}"</p>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
                   <span className="text-white/60 text-xs font-medium">{r.n[0]}</span>
@@ -529,10 +504,10 @@ function FAQ() {
   ];
 
   return (
-    <section className="bg-black py-16 md:py-24">
+    <section className="bg-black py-20 md:py-32">
       <div ref={ref} className={`max-w-3xl mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
-        <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-4 text-center">FAQ</p>
-        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] text-center mb-10 md:mb-14">Частые вопросы.</h2>
+        <p className="text-white/20 text-xs tracking-[0.3em] uppercase mb-4 text-center">FAQ</p>
+        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.03em] text-center mb-12 md:mb-16">Частые вопросы.</h2>
         <div className="space-y-0">
           {faqs.map((f, i) => (
             <div key={i} className="border-b border-white/10">
@@ -566,12 +541,12 @@ function Order() {
   }, []);
 
   return (
-    <section id="order" className="bg-[#0a0a0a] py-16 md:py-24">
+    <section id="order" className="bg-[#0a0a0a] py-20 md:py-32">
       <div ref={ref} className={`max-w-2xl mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
         <div className="text-center mb-10">
-          <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-4">Заказ</p>
-          <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em]">Закажите шторки.</h2>
-          <p className="mt-3 text-white/40 text-sm md:text-base">Свяжемся в течение 30 минут.</p>
+          <p className="text-white/20 text-xs tracking-[0.3em] uppercase mb-4">Заказ</p>
+          <h2 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em]">Закажите шторки.</h2>
+          <p className="mt-4 text-white/40 text-sm md:text-base">Свяжемся в течение 30 минут.</p>
         </div>
         {done ? (
           <div className="text-center py-16 rounded-2xl border border-white/10">
@@ -613,19 +588,19 @@ function Order() {
 function FinalCTA() {
   const { ref, visible } = useReveal();
   return (
-    <section className="relative h-[70vh] md:h-[90vh] min-h-[400px] flex items-center justify-center overflow-hidden">
-      <img src={P.g1} alt="" className="absolute inset-0 w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-black/60" />
-      <div ref={ref} className={`relative z-10 max-w-[1200px] mx-auto px-5 md:px-10 text-center reveal-slow ${visible ? 'visible' : ''}`}>
-        <h2 className="text-white text-3xl md:text-6xl lg:text-7xl font-bold tracking-[-0.03em] leading-[0.95]">
+    <section className="relative h-[80vh] md:h-[100svh] min-h-[500px] flex items-center justify-center overflow-hidden">
+      <img src={IMG.road} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <div className="absolute inset-0 overlay-center" />
+      <div ref={ref} className={`relative z-10 max-w-[1200px] mx-auto px-5 md:px-10 text-center reveal-scale ${visible ? 'visible' : ''}`}>
+        <h2 className="text-white text-4xl md:text-6xl lg:text-8xl font-bold tracking-[-0.04em] leading-[0.9]">
           Ваша следующая<br />поездка может быть<br />другой.
         </h2>
-        <p className="mt-6 md:mt-10 text-white/50 text-sm md:text-xl max-w-lg mx-auto leading-relaxed">
+        <p className="mt-8 md:mt-12 text-white/50 text-base md:text-xl max-w-lg mx-auto leading-relaxed font-light">
           Один заказ — и каждый день за рулём станет комфортнее.
         </p>
-        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-          <a href="#order" className="btn-primary px-8 py-3 rounded-full text-sm">Оформить заказ</a>
-          <a href="tel:+79134421234" className="btn-secondary px-8 py-3 rounded-full text-sm">+7 (913) 442-12-34</a>
+        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <a href="#order" className="btn-primary px-10 py-4 rounded-full text-sm">Оформить заказ</a>
+          <a href="tel:+79134421234" className="btn-secondary px-10 py-4 rounded-full text-sm">+7 (913) 442-12-34</a>
         </div>
       </div>
     </section>
@@ -636,12 +611,12 @@ function FinalCTA() {
 function Contacts() {
   const { ref, visible } = useReveal();
   return (
-    <section id="contacts" className="bg-black py-16 md:py-24">
+    <section id="contacts" className="bg-black py-20 md:py-32">
       <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
           <div>
-            <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-4">Контакты</p>
-            <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-8">Свяжитесь с нами.</h2>
+            <p className="text-white/20 text-xs tracking-[0.3em] uppercase mb-4">Контакты</p>
+            <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.03em] mb-8">Свяжитесь с нами.</h2>
             <div className="space-y-6">
               {[
                 { l: 'Телефон', v: '+7 (913) 442-12-34', h: 'tel:+79134421234' },
@@ -650,14 +625,14 @@ function Contacts() {
                 { l: 'Режим', v: 'Пн-Вс: 9:00 — 18:00', h: '#' },
               ].map((x, i) => (
                 <div key={i}>
-                  <p className="text-white/25 text-[10px] tracking-[0.2em] uppercase mb-1">{x.l}</p>
+                  <p className="text-white/20 text-[10px] tracking-[0.3em] uppercase mb-1">{x.l}</p>
                   <a href={x.h} className="text-white text-lg md:text-xl font-medium hover:text-white/70 transition-colors">{x.v}</a>
                 </div>
               ))}
             </div>
           </div>
           <div className="aspect-square rounded-2xl overflow-hidden">
-            <img src={P.g8} alt="" className="w-full h-full object-cover" />
+            <img src={IMG.g6} alt="" className="w-full h-full object-cover" />
           </div>
         </div>
       </div>
@@ -691,16 +666,13 @@ export default function App() {
       <Nav />
       <Hero />
       <Manifesto />
-      <FullImage src={P.p1} caption="Создано для тех, кто ценит каждую деталь." />
       <Product />
-      <Tech />
-      <FullImage src={P.g6} />
       <Stats />
-      <Protection />
+      <Features />
       <Installation />
-      <FullImage src={P.g3} />
       <Comparison />
       <Gallery />
+      <Lifestyle />
       <Reviews />
       <FAQ />
       <Order />
