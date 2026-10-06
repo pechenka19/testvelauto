@@ -188,13 +188,23 @@ function AboutCompany() {
 // ============ CATALOG ============
 function Catalog() {
   const { ref, visible } = useReveal();
-  const cars = [
-    { name: 'Toyota Camry', years: '1996-н.в.', img: IMG.g1 },
-    { name: 'Toyota RAV4', years: '1994-н.в.', img: IMG.g2 },
-    { name: 'Toyota Land Cruiser', years: '1990-н.в.', img: IMG.g3 },
-    { name: 'Kia Sportage', years: '2010-н.в.', img: IMG.g4 },
-    { name: 'Hyundai Tucson', years: '2004-н.в.', img: IMG.g5 },
-    { name: 'Mazda CX-5', years: '2012-н.в.', img: IMG.g6 },
+  const [patterns, setPatterns] = useState<any>(null);
+
+  useEffect(() => {
+    fetch('/patterns.json')
+      .then(res => res.json())
+      .then(data => setPatterns(data))
+      .catch(err => console.error('Failed to load patterns:', err));
+  }, []);
+
+  const brands = patterns ? Object.keys(patterns.brands) : [];
+  const popularCars = [
+    { brand: 'Toyota', model: 'Camry', img: IMG.g1 },
+    { brand: 'Toyota', model: 'RAV4', img: IMG.g2 },
+    { brand: 'Toyota', model: 'Land Cruiser', img: IMG.g3 },
+    { brand: 'Kia', model: 'Sportage', img: IMG.g4 },
+    { brand: 'Hyundai', model: 'Tucson', img: IMG.g5 },
+    { brand: 'Mazda', model: 'CX-5', img: IMG.g6 },
   ];
 
   return (
@@ -205,24 +215,41 @@ function Catalog() {
           Более 500 моделей
         </h2>
         <p className="text-white/60 text-base md:text-lg max-w-2xl mb-12 md:mb-16">
-          Изготавливаем шторки индивидуально под каждую модель автомобиля. Вот несколько примеров:
+          Изготавливаем шторки индивидуально под каждую модель автомобиля. Поддерживаемые марки:
         </p>
+        
+        {/* Brands list */}
+        <div className="mb-12 md:mb-16">
+          <div className="flex flex-wrap gap-3">
+            {brands.map((brand: string) => (
+              <span key={brand} className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/70 text-sm">
+                {brand}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Popular cars */}
+        <h3 className="text-white text-xl md:text-2xl font-semibold mb-6">Популярные модели:</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-          {cars.map((car, i) => (
+          {popularCars.map((car, i) => (
             <div key={i} className="group">
               <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-3">
-                <img src={car.img} alt={car.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <img src={car.img} alt={`${car.brand} ${car.model}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
               </div>
-              <h3 className="text-white text-sm md:text-base font-medium">{car.name}</h3>
-              <p className="text-white/40 text-xs mt-1">{car.years}</p>
+              <h3 className="text-white text-sm md:text-base font-medium">{car.brand} {car.model}</h3>
+              <p className="text-white/40 text-xs mt-1">
+                {patterns?.brands[car.brand]?.models[car.model]?.years?.[0] || 'Все годы'}
+              </p>
             </div>
           ))}
         </div>
+        
         <div className="mt-10 md:mt-12 text-center">
           <p className="text-white/40 text-sm md:text-base mb-4">
             Нет вашей модели? Изготовим под любой автомобиль
           </p>
-          <a href="#order-custom" className="inline-block border border-white/30 text-white px-6 py-3 rounded-full text-sm hover:bg-white/5 transition-colors">
+          <a href="#order" className="inline-block border border-white/30 text-white px-6 py-3 rounded-full text-sm hover:bg-white/5 transition-colors">
             Заказать индивидуальное изготовление
           </a>
         </div>
@@ -231,18 +258,61 @@ function Catalog() {
   );
 }
 
-// ============ ORDER FORM ============
+// ============ ORDER FORM WITH PATTERN CHECK ============
 function OrderForm() {
   const { ref, visible } = useReveal();
-  const [form, setForm] = useState({ name: '', car: '', year: '', phone: '' });
+  const [patterns, setPatterns] = useState<any>(null);
+  const [selectedBrand, setSelectedBrand] = useState('');
+  const [selectedModel, setSelectedModel] = useState('');
+  const [selectedYear, setSelectedYear] = useState('');
+  const [hasPattern, setHasPattern] = useState<boolean | null>(null);
+  const [form, setForm] = useState({ name: '', phone: '', comment: '' });
   const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    fetch('/patterns.json')
+      .then(res => res.json())
+      .then(data => setPatterns(data))
+      .catch(err => console.error('Failed to load patterns:', err));
+  }, []);
+
+  const handleBrandChange = (brand: string) => {
+    setSelectedBrand(brand);
+    setSelectedModel('');
+    setSelectedYear('');
+    setHasPattern(null);
+  };
+
+  const handleModelChange = (model: string) => {
+    setSelectedModel(model);
+    setSelectedYear('');
+    setHasPattern(null);
+  };
+
+  const handleYearChange = (year: string) => {
+    setSelectedYear(year);
+    if (patterns && selectedBrand && selectedModel) {
+      const modelData = patterns.brands[selectedBrand]?.models[selectedModel];
+      setHasPattern(modelData?.hasPattern || false);
+    }
+  };
 
   const submit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     setDone(true);
     setTimeout(() => setDone(false), 5000);
-    setForm({ name: '', car: '', year: '', phone: '' });
+    setForm({ name: '', phone: '', comment: '' });
+    setSelectedBrand('');
+    setSelectedModel('');
+    setSelectedYear('');
+    setHasPattern(null);
   }, []);
+
+  const brands = patterns ? Object.keys(patterns.brands) : [];
+  const models = selectedBrand && patterns ? Object.keys(patterns.brands[selectedBrand]?.models || {}) : [];
+  const years = selectedBrand && selectedModel && patterns 
+    ? patterns.brands[selectedBrand]?.models[selectedModel]?.years || [] 
+    : [];
 
   return (
     <section id="order" className="bg-black py-20 md:py-32">
@@ -250,7 +320,7 @@ function OrderForm() {
         <div className="text-center mb-10">
           <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Заказ</p>
           <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em]">Закажите шторки VELES</h2>
-          <p className="mt-4 text-white/40 text-sm md:text-base">Укажите ваш автомобиль — мы проверим наличие лекала и свяжемся с вами</p>
+          <p className="mt-4 text-white/40 text-sm md:text-base">Выберите ваш автомобиль — система проверит наличие лекала</p>
         </div>
 
         {done ? (
@@ -261,46 +331,102 @@ function OrderForm() {
               </svg>
             </div>
             <h3 className="text-white text-xl font-semibold mb-1">Заявка отправлена</h3>
-            <p className="text-white/40 text-sm">Мы проверим наличие лекала и свяжемся с вами в течение 30 минут</p>
+            <p className="text-white/40 text-sm">Мы свяжемся с вами в течение 30 минут</p>
           </div>
         ) : (
-          <form onSubmit={submit} className="space-y-3">
-            <input
-              type="text" required
-              value={form.name}
-              onChange={e => setForm({ ...form, name: e.target.value })}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
-              placeholder="Ваше имя"
-            />
-            <input
-              type="tel" required
-              value={form.phone}
-              onChange={e => setForm({ ...form, phone: e.target.value })}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
-              placeholder="Телефон"
-            />
-            <input
-              type="text" required
-              value={form.car}
-              onChange={e => setForm({ ...form, car: e.target.value })}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
-              placeholder="Марка и модель авто (например: Toyota Camry)"
-            />
-            <input
-              type="text" required
-              value={form.year}
-              onChange={e => setForm({ ...form, year: e.target.value })}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
-              placeholder="Год выпуска"
-            />
+          <div className="space-y-6">
+            {/* Car selector */}
+            <div className="space-y-3">
+              <select
+                value={selectedBrand}
+                onChange={(e) => handleBrandChange(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-white/30 focus:outline-none text-sm appearance-none cursor-pointer"
+              >
+                <option value="" className="bg-black">Выберите марку</option>
+                {brands.map(brand => (
+                  <option key={brand} value={brand} className="bg-black">{brand}</option>
+                ))}
+              </select>
 
-            <button type="submit" className="w-full bg-white text-black py-3.5 rounded-full text-sm font-medium mt-2 hover:bg-gray-200 transition-colors">
-              Отправить заявку
-            </button>
-            <p className="text-white/20 text-[10px] text-center mt-3">
-              Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности
-            </p>
-          </form>
+              {selectedBrand && (
+                <select
+                  value={selectedModel}
+                  onChange={(e) => handleModelChange(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-white/30 focus:outline-none text-sm appearance-none cursor-pointer"
+                >
+                  <option value="" className="bg-black">Выберите модель</option>
+                  {models.map(model => (
+                    <option key={model} value={model} className="bg-black">{model}</option>
+                  ))}
+                </select>
+              )}
+
+              {selectedModel && (
+                <select
+                  value={selectedYear}
+                  onChange={(e) => handleYearChange(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-white/30 focus:outline-none text-sm appearance-none cursor-pointer"
+                >
+                  <option value="" className="bg-black">Выберите год выпуска</option>
+                  {years.map((year: string) => (
+                    <option key={year} value={year} className="bg-black">{year}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            {/* Pattern status */}
+            {hasPattern !== null && (
+              <div className={`p-4 rounded-xl border ${hasPattern ? 'border-green-500/30 bg-green-500/5' : 'border-yellow-500/30 bg-yellow-500/5'}`}>
+                {hasPattern ? (
+                  <p className="text-green-400 text-sm">✓ Лекало найдено. Доступен стандартный комплект.</p>
+                ) : (
+                  <p className="text-yellow-400 text-sm">⚠ Лекало не найдено. Возможно индивидуальное изготовление.</p>
+                )}
+              </div>
+            )}
+
+            {/* Different forms based on pattern availability */}
+            {hasPattern !== null && (
+              <form onSubmit={submit} className="space-y-3">
+                <input
+                  type="text" required
+                  value={form.name}
+                  onChange={e => setForm({ ...form, name: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
+                  placeholder="Ваше имя"
+                />
+                <input
+                  type="tel" required
+                  value={form.phone}
+                  onChange={e => setForm({ ...form, phone: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
+                  placeholder="Телефон"
+                />
+                
+                {!hasPattern && (
+                  <textarea
+                    value={form.comment}
+                    onChange={e => setForm({ ...form, comment: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm min-h-[100px] resize-none"
+                    placeholder="Дополнительная информация (необязательно)"
+                  />
+                )}
+
+                {/* Different form IDs for analytics */}
+                <button 
+                  type="submit" 
+                  id={hasPattern ? 'order-standard' : 'order-custom'}
+                  className="w-full bg-white text-black py-3.5 rounded-full text-sm font-medium mt-2 hover:bg-gray-200 transition-colors"
+                >
+                  {hasPattern ? 'Заказать стандартный комплект' : 'Запросить индивидуальное изготовление'}
+                </button>
+                <p className="text-white/20 text-[10px] text-center mt-3">
+                  Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности
+                </p>
+              </form>
+            )}
+          </div>
         )}
       </div>
     </section>
