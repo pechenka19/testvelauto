@@ -1,36 +1,32 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 
 // ============ HOOKS ============
-
-function useScrollReveal(threshold = 0.15) {
+function useReveal() {
   const ref = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
+  const [visible, setVisible] = useState(false);
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setIsVisible(true); },
-      { threshold, rootMargin: '0px 0px -60px 0px' }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [threshold]);
-  return { ref, isVisible };
+    if (!ref.current) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setVisible(true); }, { threshold: 0.1 });
+    obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+  return { ref, visible };
 }
 
-function useCountUp(end: number, duration = 2500, start = false) {
-  const [count, setCount] = useState(0);
+function useCountUp(end: number, start = false) {
+  const [v, setV] = useState(0);
   useEffect(() => {
     if (!start) return;
-    let startTime: number;
-    const animate = (ts: number) => {
-      if (!startTime) startTime = ts;
-      const progress = Math.min((ts - startTime) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 4);
-      setCount(Math.floor(eased * end));
-      if (progress < 1) requestAnimationFrame(animate);
+    let t0: number;
+    const run = (t: number) => {
+      if (!t0) t0 = t;
+      const p = Math.min((t - t0) / 2000, 1);
+      setV(Math.floor((1 - Math.pow(1 - p, 3)) * end));
+      if (p < 1) requestAnimationFrame(run);
     };
-    requestAnimationFrame(animate);
-  }, [end, duration, start]);
-  return count;
+    requestAnimationFrame(run);
+  }, [end, start]);
+  return v;
 }
 
 function useWordReveal() {
@@ -38,93 +34,25 @@ function useWordReveal() {
   useEffect(() => {
     if (!ref.current) return;
     const words = ref.current.querySelectorAll('.word');
-    const handleScroll = () => {
+    const onScroll = () => {
       if (!ref.current) return;
-      const rect = ref.current.getBoundingClientRect();
-      const windowH = window.innerHeight;
-      const start = windowH * 0.8;
-      const end = windowH * 0.2;
-      const progress = Math.max(0, Math.min(1, (start - rect.top) / (start - end)));
-      const activeCount = Math.floor(progress * words.length);
-      words.forEach((word, i) => {
-        if (i < activeCount) word.classList.add('active');
-        else word.classList.remove('active');
-      });
+      const r = ref.current.getBoundingClientRect();
+      const wh = window.innerHeight;
+      const p = Math.max(0, Math.min(1, (wh * 0.8 - r.top) / (wh * 0.6)));
+      const n = Math.floor(p * words.length);
+      words.forEach((w, i) => w.classList.toggle('active', i < n));
     };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
-  return ref;
-}
-
-function useHorizontalScroll() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  useEffect(() => {
-    if (isMobile) return; // Skip on mobile
-
-    const handleScroll = () => {
-      if (!containerRef.current || !wrapperRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const windowH = window.innerHeight;
-      const containerH = containerRef.current.offsetHeight;
-      const scrollable = containerH - windowH;
-      const progress = Math.max(0, Math.min(1, -rect.top / scrollable));
-      const wrapperW = wrapperRef.current.scrollWidth - window.innerWidth;
-      wrapperRef.current.style.transform = `translateX(${-progress * wrapperW}px)`;
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [isMobile]);
-
-  return { containerRef, wrapperRef, isMobile };
-}
-
-function useParallax(speed = 0.3) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  useEffect(() => {
-    if (isMobile) return; // Skip on mobile for performance
-
-    const handleScroll = () => {
-      if (!ref.current) return;
-      const rect = ref.current.getBoundingClientRect();
-      const center = rect.top + rect.height / 2;
-      const windowCenter = window.innerHeight / 2;
-      const offset = (center - windowCenter) * speed;
-      const img = ref.current.querySelector('.parallax-img') as HTMLElement;
-      if (img) img.style.transform = `translateY(${offset}px) scale(1.1)`;
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [speed, isMobile]);
   return ref;
 }
 
 // ============ PHOTOS ============
 const P = {
-  hero: 'https://sun9-13.vkuserphoto.ru/s/v1/ig2/zFbcuceL2RhzNyaDMQfQLb6PUkMp-zJ782RHnx4ydYtDzaD6qexltBgqr-ErhUGnqOcTr5Y9OBAOaTzj-Ot_owp3.jpg?quality=95&crop=256,0,2048,1152&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x270,540x304,640x360,720x405,1080x607,1280x720,1440x810,2048x1152&from=bu&u=K3w7mhYXJHgK4ldAnxuT9yEX1gyRRfZkSPNih-2BTYY&cs=2048x0',
-  p1: 'https://sun9-7.vkuserphoto.ru/s/v1/ig2/uzMbsL18hLFPQsNqx60WYvTlwVKFelNy4bRDk2fWabopIEuOmqA2wxx-114qrbPsAcPkPNRFMEVb6SptCUmAldd1.jpg?quality=95&crop=0,0,2560,1920&as=32x24,48x36,72x54,108x81,160x120,240x180,360x270,480x360,540x405,640x480,720x540,1080x810,1280x960,1440x1080,2560x1920&from=bu&u=SRNzGGrdCJyOmQ5tFs1BiC4UnzZwoCbJqwfRa4SrOKk&cs=2560x0',
+  hero: 'https://sun9-13.vkuserphoto.ru/s/v1/ig2/zFbcuceL2RhzNyaDMQfQLb6PUkMp-zJ782RHnx4ydYtDzaD6qexltBgqr-ErhUGnqOcTr5Y9OBAOaTzj-Ot_owp3.jpg?quality=95&crop=256,0,2048,1152&from=bu&u=K3w7mhYXJHgK4ldAnxuT9yEX1gyRRfZkSPNih-2BTYY&cs=2048x0',
+  p1: 'https://sun9-7.vkuserphoto.ru/s/v1/ig2/uzMbsL18hLFPQsNqx60WYvTlwVKFelNy4bRDk2fWabopIEuOmqA2wxx-114qrbPsAcPkPNRFMEVb6SptCUmAldd1.jpg?quality=95&crop=0,0,2560,1920&from=bu&u=SRNzGGrdCJyOmQ5tFs1BiC4UnzZwoCbJqwfRa4SrOKk&cs=2560x0',
   p2: 'https://sun9-59.vkuserphoto.ru/s/v1/ig2/73wlTEHSUOJFeStg7NqlwbVp_wK7iWmC-Zsyn1kzuby4fSpl9iuaxhpRx0f-bz0NBd8k3s4VG798o9dfytlyjnfn.jpg?quality=95&as=32x43,48x64,72x96,108x144,160x213,240x320,360x480,480x640,540x720,640x853,720x960,1080x1440,1280x1707,1440x1920,1920x2560&from=bu&u=QbiYUxVCg1xucOgyQCsge1l_aez8VJGdUR6HEFx_lR4&cs=1920x0',
   p3: 'https://sun9-68.vkuserphoto.ru/s/v1/ig2/u2Yep-q10rjkasBC84VyBrgB5NlUUMkI4hz2f-bHRHusrDFoBR4hmGhpvqDlDXBvY6rkrxoW-qC1oPhtWmtY2jhq.jpg?quality=95&as=32x43,48x64,72x96,108x144,160x213,240x320,360x480,480x640,540x720,640x853,720x960,1080x1440,1280x1707,1440x1920,1920x2560&from=bu&u=3psrzXdNT7wb7CjPs6oDM6g8S75qYbHdMtnc9_r5sBg&cs=1920x0',
   g1: 'https://sun9-7.vkuserphoto.ru/s/v1/ig2/eispSnwz9X2hrEO3Pbdqn_Lj1gRSMOLXQm6opejaSun3IXeK0grWUgfckGEsfniYsJA59BFxn9Yw7deQ5WrXL1ZA.jpg?quality=95&as=32x16,48x24,72x36,108x55,160x81,240x122,360x183,480x243,540x274,640x324,720x365,1080x548,1280x649,1440x730,2560x1298&from=bu&u=abw07EHPYE9OcjffAY1JjvMHdN9TZUq-ZTNlo4550-E&cs=2560x0',
@@ -133,69 +61,46 @@ const P = {
   g4: 'https://sun9-45.vkuserphoto.ru/s/v1/ig2/GnuybaSFQweWS-eeypzELlQ-T6evqy8xQagcTCNlgbHnlKAapTOwxA_sNSP2nDdZmBBJ1_tmx8wM5hXiiQYwJTAD.jpg?quality=95&as=32x14,48x22,72x32,108x49,160x72,240x108,360x162,480x216,540x243,640x288,720x324,1080x486,1280x576,1440x648,2560x1152&from=bu&u=7qeRQjF0ZXgaxdjygqeN0CtmsgT_q2CUMpPv6tPSung&cs=2560x0',
   g5: 'https://sun9-65.vkuserphoto.ru/s/v1/ig2/rdaWAna1J2iGcLmUtOhnwo4d4G5y-UnfQQF9a89T_OhGLWzstD312N8xkPsLUb5fcfyIsBv296ozMWRoYHF-xyJE.jpg?quality=95&as=32x24,48x36,72x54,108x81,160x120,240x180,360x270,480x360,540x405,640x480,720x540,1080x810,1280x960,1440x1080,2560x1920&from=bu&u=n32Y1_-jZQshbq-GvSEMCM76QghSD6BmuLH2GknIy3M&cs=2560x0',
   g6: 'https://sun9-54.vkuserphoto.ru/s/v1/ig2/KK44fuf5HhFQN9wkgZ4Msem2OeOIsFOd79FESZ6D0Q_gK_LjdJmxng0aH7epqicFAhMUx-fNxPHN4gYYWk3SPqwa.jpg?quality=95&as=32x18,48x27,72x40,108x61,160x90,240x135,360x202,480x360,540x304,640x360,720x405,1080x607,1280x720,1440x810,2560x1440&from=bu&u=4RjyCr0zEoOEzUmqHeIRn5B_k9kiWLuzV3syZ0Q3w1c&cs=2560x0',
-  g7: 'https://sun9-17.vkuserphoto.ru/s/v1/ig2/NGbjY5kEA4Yxg4k6m-cFWaX1y3SCvw5jCk8renHr5eNpQfOG9qnTQ2NdumkPca-mYmdU25s6Ssc0Hcju8qQDUagn.jpg?quality=95&crop=0,0,1707,2560&as=32x48,48x72,72x108,108x162,160x240,240x360,360x540,480x720,540x810,640x960,720x1080,1080x1620,1280x1920,1440x2160,1707x2560&from=bu&u=1WfV4OVllsShwmNVnCt3DUBxzjMSGTiDiTHA9ibFrF4&cs=1707x0',
+  g7: 'https://sun9-17.vkuserphoto.ru/s/v1/ig2/NGbjY5kEA4Yxg4k6m-cFWaX1y3SCvw5jCk8renHr5eNpQfOG9qnTQ2NdumkPca-mYmdU25s6Ssc0Hcju8qQDUagn.jpg?quality=95&crop=0,0,1707,2560&from=bu&u=1WfV4OVllsShwmNVnCt3DUBxzjMSGTiDiTHA9ibFrF4&cs=1707x0',
   g8: 'https://sun9-34.vkuserphoto.ru/s/v1/ig2/K8Gwoe4egTnBf3TQ7qGMG20jsWiuX5X2zySdLARIv_drZk-yCpl4Ul7kxOv5Cjn9P3vAGsUKf99uVtHdGOHX4AYg.jpg?quality=95&as=32x45,48x68,72x102,108x153,160x226,240x339,360x509,480x679,540x764,640x905,720x1018,1080x1527,1191x1684&from=bu&u=ozG8KPGAX22-DaXhgozmmbEamFGwgLIodhlaWJzsTnA&cs=1191x0',
   g9: 'https://sun9-5.vkuserphoto.ru/s/v1/ig2/8AeAE7ff8ZdAjIPmj9lfGu1BfzaaTcR-4l-v5i5JCSHwwqMlxLSxFHZd71RrI91gsNFZ_SpimT_9Kk4qIN62poAy.jpg?quality=95&as=32x24,48x36,72x54,108x81,160x120,240x180,360x270,480x360,540x405,640x480,720x540,1080x810,1280x960&from=bu&u=44Dwwp-Ykk5o9gxzqVF4luR4PrXJYWCQdY1HKsWMw4I&cs=1280x0',
   g10: 'https://sun9-41.vkuserphoto.ru/s/v1/ig2/ZVKX_jucXzMo9fJyXcsNhrcMS7-SXKlgBtUBGrn0R85NtQhge0D70Fj6QlMRkrmRjKCGzdGx2tgkzO3_hWL02Ucw.jpg?quality=95&as=32x57,48x85,72x128,108x192,160x284,240x427,360x640,480x853,540x960,640x1138,720x1280,900x1600&from=bu&u=dFwkuajeaHs38gCXQAIl5tn6rkMB92AjMol6bO84Wwk&cs=900x0',
 };
 
-// ============ COMPONENTS ============
-
-function ScrollProgress() {
-  const [progress, setProgress] = useState(0);
-  useEffect(() => {
-    const handleScroll = () => {
-      const total = document.documentElement.scrollHeight - window.innerHeight;
-      setProgress(total > 0 ? window.scrollY / total : 0);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-  return (
-    <div className="fixed top-0 left-0 w-full h-[2px] z-[100] bg-transparent">
-      <div className="h-full bg-white/50 scroll-progress" style={{ transform: `scaleX(${progress})` }} />
-    </div>
-  );
-}
-
-function Navigation() {
+// ============ NAV ============
+function Nav() {
   const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [open, setOpen] = useState(false);
   useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 80);
+    const h = () => setScrolled(window.scrollY > 60);
     window.addEventListener('scroll', h, { passive: true });
     return () => window.removeEventListener('scroll', h);
   }, []);
-
   useEffect(() => {
-    if (menuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+    document.body.style.overflow = open ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
-  }, [menuOpen]);
+  }, [open]);
+
+  const links = [['Продукт', '#product'], ['Технологии', '#tech'], ['Галерея', '#gallery'], ['Отзывы', '#reviews']];
 
   return (
-    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${scrolled ? 'py-3 md:py-4 bg-black/80 backdrop-blur-2xl' : 'py-5 md:py-6 bg-transparent'}`}>
-      <div className="max-w-[1600px] mx-auto px-5 md:px-12 flex items-center justify-between">
-        <a href="#hero" className="text-lg md:text-xl font-semibold tracking-tight text-white">VELES</a>
-        <div className="hidden lg:flex items-center gap-10">
-          {[['Продукт', '#product'], ['Технологии', '#tech'], ['Галерея', '#gallery'], ['Отзывы', '#reviews']].map(([l, h]) => (
-            <a key={h} href={h} className="text-[13px] text-white/70 hover:text-white transition-colors duration-300 tracking-[-0.01em]">{l}</a>
-          ))}
+    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${scrolled ? 'py-3 bg-black/90 backdrop-blur-xl' : 'py-5 bg-transparent'}`}>
+      <div className="max-w-[1440px] mx-auto px-5 md:px-10 flex items-center justify-between">
+        <a href="#hero" className="text-lg font-semibold tracking-tight text-white">VELES</a>
+        <div className="hidden md:flex items-center gap-8">
+          {links.map(([l, h]) => <a key={h} href={h} className="text-[13px] text-white/70 hover:text-white transition-colors">{l}</a>)}
         </div>
-        <a href="#order" className="hidden lg:block btn-primary px-5 py-2.5 rounded-full text-[13px]">Заказать</a>
-        <button onClick={() => setMenuOpen(!menuOpen)} className="lg:hidden w-10 h-10 flex flex-col items-center justify-center gap-1.5" aria-label="Меню">
-          <span className={`w-5 h-[1.5px] bg-white transition-all duration-300 ${menuOpen ? 'rotate-45 translate-y-[4px]' : ''}`} />
-          <span className={`w-5 h-[1.5px] bg-white transition-all duration-300 ${menuOpen ? 'opacity-0' : ''}`} />
-          <span className={`w-5 h-[1.5px] bg-white transition-all duration-300 ${menuOpen ? '-rotate-45 -translate-y-[4px]' : ''}`} />
+        <a href="#order" className="hidden md:block btn-primary px-5 py-2 rounded-full text-[13px]">Заказать</a>
+        <button onClick={() => setOpen(!open)} className="md:hidden w-10 h-10 flex flex-col items-center justify-center gap-1.5" aria-label="Меню">
+          <span className={`w-5 h-[1.5px] bg-white transition-all ${open ? 'rotate-45 translate-y-[4px]' : ''}`} />
+          <span className={`w-5 h-[1.5px] bg-white transition-all ${open ? 'opacity-0' : ''}`} />
+          <span className={`w-5 h-[1.5px] bg-white transition-all ${open ? '-rotate-45 -translate-y-[4px]' : ''}`} />
         </button>
       </div>
-      <div className={`lg:hidden fixed inset-0 bg-black z-40 transition-all duration-500 ${menuOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
+      <div className={`md:hidden fixed inset-0 bg-black z-40 transition-all duration-300 ${open ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
         <div className="flex flex-col items-center justify-center h-full gap-8">
-          {[['Продукт', '#product'], ['Технологии', '#tech'], ['Галерея', '#gallery'], ['Отзывы', '#reviews'], ['Заказать', '#order']].map(([l, h]) => (
-            <a key={h} href={h} onClick={() => setMenuOpen(false)} className="text-2xl text-white/80 hover:text-white transition-colors">{l}</a>
+          {[...links, ['Заказать', '#order']].map(([l, h]) => (
+            <a key={h} href={h} onClick={() => setOpen(false)} className="text-2xl text-white/80">{l}</a>
           ))}
         </div>
       </div>
@@ -204,93 +109,90 @@ function Navigation() {
 }
 
 // ============ HERO ============
-function HeroSection() {
-  const parallaxRef = useParallax(0.15);
+function Hero() {
   return (
-    <section id="hero" className="relative h-[100dvh] min-h-[600px] flex items-end overflow-hidden">
-      <div ref={parallaxRef} className="absolute inset-0">
-        <div className="parallax-img absolute inset-0">
-          <img src={P.hero} alt="" className="w-full h-full object-cover" />
-        </div>
-        <div className="absolute inset-0 overlay-gradient" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-      </div>
-      <div className="relative z-10 max-w-[1600px] mx-auto px-5 md:px-12 pb-16 md:pb-32 w-full">
-        <p className="text-white/60 text-xs md:text-base tracking-[0.2em] uppercase mb-4 md:mb-6 animate-fade-in-up delay-300">Каркасные автошторки</p>
-        <h1 className="text-white text-[clamp(2.5rem,8vw,9rem)] font-bold tracking-[-0.04em] leading-[0.9] max-w-full md:max-w-[90%] animate-fade-in-up delay-500">
+    <section id="hero" className="relative h-[100svh] min-h-[550px] flex items-end overflow-hidden">
+      <img src={P.hero} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <div className="absolute inset-0 overlay-full" />
+      <div className="relative z-10 max-w-[1440px] mx-auto px-5 md:px-10 pb-16 md:pb-24 w-full">
+        <p className="text-white/70 text-xs md:text-sm tracking-[0.2em] uppercase mb-4 animate-fade-in-up delay-300">Каркасные автошторки</p>
+        <h1 className="text-white text-[clamp(2.5rem,7vw,6rem)] font-bold tracking-[-0.03em] leading-[0.95] animate-fade-in-up delay-500">
           Комфорт,<br />который вы<br />заслужили.
         </h1>
-        <p className="mt-6 md:mt-10 text-white/60 text-base md:text-2xl max-w-xl leading-relaxed font-light animate-fade-in-up delay-700">
+        <p className="mt-5 md:mt-8 text-white/70 text-sm md:text-xl max-w-lg leading-relaxed animate-fade-in-up delay-700">
           Защита от солнца, пыли и насекомых. Магнитное крепление. Установка за 5 секунд.
         </p>
-        <div className="mt-8 md:mt-14 flex flex-col sm:flex-row gap-3 md:gap-4 animate-fade-in-up delay-1000">
-          <a href="#order" className="btn-primary px-7 py-3.5 md:px-8 md:py-4 rounded-full text-sm text-center">Заказать шторки</a>
-          <a href="#product" className="btn-secondary px-7 py-3.5 md:px-8 md:py-4 rounded-full text-sm text-center">Узнать больше</a>
-        </div>
-      </div>
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 animate-fade-in delay-1400 hidden md:flex">
-        <div className="flex flex-col items-center gap-2">
-          <span className="text-[10px] text-white/30 tracking-[0.3em] uppercase">Scroll</span>
-          <div className="w-px h-10 bg-gradient-to-b from-white/40 to-transparent" />
+        <div className="mt-6 md:mt-10 flex flex-col sm:flex-row gap-3 animate-fade-in-up delay-1000">
+          <a href="#order" className="btn-primary px-7 py-3 rounded-full text-sm text-center">Заказать</a>
+          <a href="#product" className="btn-secondary px-7 py-3 rounded-full text-sm text-center">Подробнее</a>
         </div>
       </div>
     </section>
   );
 }
 
-// ============ MANIFESTO (Word reveal) ============
-function ManifestoSection() {
+// ============ MANIFESTO ============
+function Manifesto() {
   const ref = useWordReveal();
-  const text = "Каждый день за рулём — это борьба. Солнце слепит. Салон раскаляется. Насекомые летят в лицо. Дети капризничают. Вы тратите энергию на то, чтобы просто доехать. Мы решили это изменить. VELES — это не просто автошторки. Это новый стандарт комфорта в автомобиле. Создано для тех, кто понимает: дорога должна приносить удовольствие, а не стресс.";
+  const text = "Каждый день за рулём — это борьба. Солнце слепит. Салон раскаляется. Насекомые летят в лицо. Дети капризничают. Мы решили это изменить. VELES — это новый стандарт комфорта. Создано для тех, кто понимает: дорога должна приносить удовольствие.";
   const words = text.split(' ');
-
   return (
-    <section className="relative py-[20vh] md:py-[30vh] lg:py-[40vh] section-dark">
-      <div ref={ref} className="max-w-[1400px] mx-auto px-5 md:px-12 word-reveal">
-        <p className="text-white/30 text-xs md:text-sm tracking-[0.2em] uppercase mb-8 md:mb-12">Философия</p>
-        <p className="text-white text-2xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] leading-[1.15]">
-          {words.map((word, i) => (
-            <span key={i} className="word">{word}</span>
-          ))}
+    <section className="py-20 md:py-32 bg-black">
+      <div ref={ref} className="max-w-[1200px] mx-auto px-5 md:px-10 word-reveal">
+        <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-6">Философия</p>
+        <p className="text-white text-xl md:text-4xl lg:text-5xl font-bold tracking-[-0.02em] leading-[1.2]">
+          {words.map((w, i) => <span key={i} className="word">{w}</span>)}
         </p>
       </div>
     </section>
   );
 }
 
-// ============ PRODUCT INTRO ============
-function ProductIntro() {
-  const { ref, isVisible } = useScrollReveal();
-  const parallaxRef = useParallax(0.2);
-
+// ============ FULL-WIDTH IMAGE ============
+function FullImage({ src, caption }: { src: string; caption?: string }) {
+  const { ref, visible } = useReveal();
   return (
-    <section id="product" className="relative">
-      <div ref={parallaxRef} className="relative h-[80vh] md:h-[120vh] overflow-hidden">
-        <div className="parallax-img absolute inset-0">
-          <img src={P.p1} alt="" className="w-full h-full object-cover" />
+    <section ref={ref} className="relative h-[60vh] md:h-[80vh] overflow-hidden">
+      <img src={src} alt="" className={`w-full h-full object-cover transition-transform duration-[2s] ${visible ? 'scale-100' : 'scale-110'}`} />
+      {caption && (
+        <div className="absolute bottom-0 left-0 right-0 p-5 md:p-10 overlay-bottom">
+          <p className="text-white/80 text-sm md:text-base">{caption}</p>
         </div>
-        <div className="absolute inset-0 overlay-gradient" />
-        <div ref={ref} className={`absolute bottom-0 left-0 right-0 p-5 md:p-16 lg:p-24 reveal-slow ${isVisible ? 'visible' : ''}`}>
-          <p className="text-white/50 text-xs md:text-sm tracking-[0.2em] uppercase mb-4 md:mb-6">Продукт</p>
-          <h2 className="text-white text-3xl md:text-6xl lg:text-8xl font-bold tracking-[-0.03em] leading-[0.95] max-w-full md:max-w-4xl">
-            Создано для тех, кто ценит каждую деталь.
-          </h2>
+      )}
+    </section>
+  );
+}
+
+// ============ PRODUCT SECTION ============
+function Product() {
+  const { ref, visible } = useReveal();
+  return (
+    <section id="product" className="bg-black">
+      <div ref={ref} className={`py-16 md:py-24 px-5 md:px-10 max-w-[1440px] mx-auto reveal ${visible ? 'visible' : ''}`}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
+          <div>
+            <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-4">Продукт</p>
+            <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] leading-[1.05] mb-6">
+              Каждая шторка — индивидуальна.
+            </h2>
+            <p className="text-white/50 text-sm md:text-lg leading-relaxed mb-4">
+              Мы не делаем универсальные решения. Каждая шторка создаётся под конкретную модель автомобиля — с точностью до миллиметра.
+            </p>
+            <p className="text-white/50 text-sm md:text-lg leading-relaxed">
+              Стальной каркас повторяет геометрию вашего стекла. Результат — идеальная посадка, без зазоров и щелей.
+            </p>
+          </div>
+          <div className="aspect-[4/5] rounded-2xl overflow-hidden">
+            <img src={P.p2} alt="" className="w-full h-full object-cover" />
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-// ============ STICKY SCROLL STORYTELLING ============
-function StickyStorySection() {
-  const stories = [
-    { title: 'Идеальная посадка', text: 'Каждая шторка создаётся под конкретную модель автомобиля — с точностью до миллиметра. Стальной каркас повторяет геометрию вашего стекла. Без зазоров. Без щелей.', img: P.g5 },
-    { title: 'Неодимовые магниты', text: 'Вшиты в каркас под резинкой. Шторка притягивается к металлической рамке двери — без клея, без скотча, без сверления. Краска не страдает.', img: P.p3 },
-    { title: 'Премиум-сетка', text: 'Мелкоячеистая структура обеспечивает отличную прозрачность изнутри. Вы видите дорогу. Снаружи — ничего не видно. Эффект тонировки без тонировки.', img: P.g2 },
-    { title: 'Натуральная кожа', text: 'Хлястики из натуральной кожи с логотипом VELES. Тактильно приятно. Не выцветает. Выглядит дорого — как и должно быть.', img: P.p2 },
-    { title: 'Армированные швы', text: 'Двойная строчка армированными нитями. Каркас не развалится. Сетка не оторвётся. Качество, которое служит годами.', img: P.g7 },
-  ];
-
+// ============ TECH STICKY (desktop) / SIMPLE (mobile) ============
+function Tech() {
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -299,25 +201,31 @@ function StickyStorySection() {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Mobile: simple vertical scroll
+  const stories = [
+    { title: 'Идеальная посадка', text: 'Стальной каркас повторяет геометрию вашего стекла. Без зазоров. Без щелей.', img: P.g5 },
+    { title: 'Неодимовые магниты', text: 'Вшиты в каркас. Шторка притягивается к рамке двери — без клея, без скотча.', img: P.p3 },
+    { title: 'Премиум-сетка', text: 'Отличная прозрачность изнутри. Снаружи — ничего не видно. Эффект тонировки.', img: P.g2 },
+    { title: 'Натуральная кожа', text: 'Хлястики из кожи с логотипом VELES. Тактильно приятно. Не выцветает.', img: P.p2 },
+  ];
+
   if (isMobile) {
     return (
-      <section id="tech" className="relative py-20 md:py-32 bg-black">
-        <div className="max-w-[1600px] mx-auto px-5 md:px-12">
-          <p className="text-white/30 text-xs md:text-sm tracking-[0.2em] uppercase mb-6 md:mb-8">Технологии</p>
-          <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.03em] mb-12 md:mb-16">Что внутри.</h2>
-          <div className="space-y-12 md:space-y-16">
-            {stories.map((story, i) => (
-              <div key={i} className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 items-center">
+      <section id="tech" className="bg-black py-16 md:py-24">
+        <div className="max-w-[1440px] mx-auto px-5 md:px-10">
+          <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-4">Технологии</p>
+          <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-10 md:mb-16">Что внутри.</h2>
+          <div className="space-y-10 md:space-y-16">
+            {stories.map((s, i) => (
+              <div key={i} className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-12 items-center">
                 <div className={i % 2 === 1 ? 'md:order-2' : ''}>
-                  <div className="aspect-square rounded-2xl overflow-hidden mb-4">
-                    <img src={story.img} alt={story.title} className="w-full h-full object-cover" loading="lazy" />
+                  <div className="aspect-[4/3] rounded-xl overflow-hidden">
+                    <img src={s.img} alt={s.title} className="w-full h-full object-cover" loading="lazy" />
                   </div>
                 </div>
                 <div className={i % 2 === 1 ? 'md:order-1' : ''}>
-                  <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-3">{String(i + 1).padStart(2, '0')}</p>
-                  <h3 className="text-white text-2xl md:text-4xl font-bold tracking-[-0.02em] mb-4">{story.title}</h3>
-                  <p className="text-white/50 text-base md:text-lg leading-relaxed">{story.text}</p>
+                  <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-2">{String(i + 1).padStart(2, '0')}</p>
+                  <h3 className="text-white text-2xl md:text-3xl font-bold tracking-[-0.02em] mb-3">{s.title}</h3>
+                  <p className="text-white/50 text-sm md:text-base leading-relaxed">{s.text}</p>
                 </div>
               </div>
             ))}
@@ -327,131 +235,51 @@ function StickyStorySection() {
     );
   }
 
-  return (
-    <section id="tech" className="relative">
-      <StickyStoryController stories={stories} />
-    </section>
-  );
+  return <StickyTech stories={stories} />;
 }
 
-function StickyStoryController({ stories }: { stories: { title: string; text: string; img: string }[] }) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const sectionRef = useRef<HTMLDivElement>(null);
+function StickyTech({ stories }: { stories: { title: string; text: string; img: string }[] }) {
+  const [idx, setIdx] = useState(0);
+  const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (!sectionRef.current) return;
-      const rect = sectionRef.current.getBoundingClientRect();
-      const sectionH = sectionRef.current.offsetHeight;
-      const windowH = window.innerHeight;
-      const scrolled = -rect.top;
-      const total = sectionH - windowH;
-      const progress = Math.max(0, Math.min(1, scrolled / total));
-      const index = Math.min(stories.length - 1, Math.floor(progress * stories.length));
-      setActiveIndex(index);
+    const onScroll = () => {
+      if (!wrapRef.current) return;
+      const r = wrapRef.current.getBoundingClientRect();
+      const h = wrapRef.current.offsetHeight;
+      const wh = window.innerHeight;
+      const p = Math.max(0, Math.min(1, -r.top / (h - wh)));
+      setIdx(Math.min(stories.length - 1, Math.floor(p * stories.length)));
     };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
   }, [stories.length]);
 
   return (
-    <div ref={sectionRef} className="relative" style={{ height: `${stories.length * 100}vh` }}>
-      <div className="sticky top-0 h-[100dvh] flex items-center">
-        {stories.map((story, i) => (
-          <div key={i} className={`absolute inset-0 transition-opacity duration-1000 ${i === activeIndex ? 'opacity-100' : 'opacity-0'}`}>
-            <img src={story.img} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+    <section id="tech" ref={wrapRef} style={{ height: `${stories.length * 100}vh` }}>
+      <div className="sticky top-0 h-[100svh] overflow-hidden">
+        {stories.map((s, i) => (
+          <div key={i} className={`absolute inset-0 transition-opacity duration-700 ${i === idx ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+            <img src={s.img} alt="" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 overlay-left" />
           </div>
         ))}
-        <div className="relative z-10 max-w-[1600px] mx-auto px-5 md:px-12 w-full">
-          <div className="max-w-xl">
-            <p className="text-white/40 text-xs md:text-sm tracking-[0.2em] uppercase mb-4">Технологии — {String(activeIndex + 1).padStart(2, '0')}</p>
-            {stories.map((story, i) => (
-              <div key={i} className={`transition-all duration-700 ${i === activeIndex ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 absolute'}`}>
-                {i === activeIndex && (
-                  <>
-                    <h3 className="text-white text-3xl md:text-6xl lg:text-7xl font-bold tracking-[-0.03em] leading-[0.95] mb-4 md:mb-6">
-                      {story.title}
-                    </h3>
-                    <p className="text-white/60 text-base md:text-xl leading-relaxed">
-                      {story.text}
-                    </p>
-                  </>
-                )}
-              </div>
-            ))}
+        <div className="relative z-10 h-full flex items-center">
+          <div className="max-w-[1440px] mx-auto px-5 md:px-10 w-full">
+            <div className="max-w-lg">
+              <p className="text-white/40 text-xs tracking-[0.2em] uppercase mb-3">Технологии — {String(idx + 1).padStart(2, '0')}</p>
+              <h3 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] leading-[1.05] mb-4">
+                {stories[idx].title}
+              </h3>
+              <p className="text-white/60 text-sm md:text-lg leading-relaxed">{stories[idx].text}</p>
+            </div>
           </div>
         </div>
-        <div className="absolute right-5 md:right-12 top-1/2 -translate-y-1/2 flex flex-col gap-3">
+        <div className="absolute right-5 md:right-10 top-1/2 -translate-y-1/2 flex flex-col gap-2">
           {stories.map((_, i) => (
-            <div key={i} className={`w-2 h-2 rounded-full transition-all duration-500 ${i === activeIndex ? 'bg-white scale-125' : 'bg-white/20'}`} />
+            <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all ${i === idx ? 'bg-white scale-150' : 'bg-white/30'}`} />
           ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ============ GALLERY ============
-function GallerySection() {
-  const { containerRef, wrapperRef, isMobile } = useHorizontalScroll();
-  const { ref, isVisible } = useScrollReveal();
-
-  const items = [
-    { img: P.g1, title: 'Volkswagen Tiguan' },
-    { img: P.g2, title: 'Kia Sportage' },
-    { img: P.g3, title: 'Hyundai Tucson' },
-    { img: P.g4, title: 'Toyota Camry' },
-    { img: P.g5, title: 'Mazda CX-5' },
-    { img: P.g6, title: 'Nissan X-Trail' },
-    { img: P.g8, title: 'Volkswagen Polo' },
-    { img: P.g9, title: 'Skoda Octavia' },
-  ];
-
-  // Mobile: vertical grid
-  if (isMobile) {
-    return (
-      <section id="gallery" className="relative py-20 md:py-32 bg-black">
-        <div ref={ref} className={`max-w-[1600px] mx-auto px-5 md:px-12 reveal ${isVisible ? 'visible' : ''}`}>
-          <p className="text-white/30 text-xs md:text-sm tracking-[0.2em] uppercase mb-4">Галерея</p>
-          <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.03em] mb-8 md:mb-12">Реальные установки.</h2>
-          <div className="grid grid-cols-2 gap-3 md:gap-4">
-            {items.map((item, i) => (
-              <div key={i} className="aspect-square rounded-xl md:rounded-2xl overflow-hidden">
-                <img src={item.img} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
-              </div>
-            ))}
-          </div>
-          <div className="mt-8 text-center">
-            <a href="https://vk.com/avtoshtorki_abakan" target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white text-sm transition-colors">
-              Больше фото в VK →
-            </a>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  return (
-    <section ref={containerRef} className="relative" style={{ height: '300vh' }}>
-      <div className="sticky top-0 h-[100dvh] overflow-hidden flex flex-col">
-        <div ref={ref} className={`px-5 md:px-12 pt-16 md:pt-20 flex-shrink-0 reveal ${isVisible ? 'visible' : ''}`}>
-          <p className="text-white/30 text-xs md:text-sm tracking-[0.2em] uppercase mb-4">Галерея</p>
-          <h2 className="text-white text-3xl md:text-6xl font-bold tracking-[-0.03em]">Реальные установки.</h2>
-          <p className="mt-4 text-white/40 text-base md:text-lg max-w-xl">Прокручивайте дальше →</p>
-        </div>
-        <div className="flex-1 flex items-center">
-          <div ref={wrapperRef} className="flex gap-4 md:gap-8 pl-5 md:pl-12 will-change-transform">
-            {items.map((item, i) => (
-              <div key={i} className="flex-shrink-0 w-[75vw] md:w-[45vw] lg:w-[35vw]">
-                <div className="aspect-[4/5] rounded-xl md:rounded-2xl overflow-hidden mb-3 md:mb-4">
-                  <img src={item.img} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
-                </div>
-                <p className="text-white/60 text-xs md:text-sm tracking-wide">{item.title}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </section>
@@ -459,26 +287,26 @@ function GallerySection() {
 }
 
 // ============ STATS ============
-function StatsSection() {
-  const { ref, isVisible } = useScrollReveal();
-  const clients = useCountUp(2000, 2500, isVisible);
-  const models = useCountUp(500, 2500, isVisible);
-  const cities = useCountUp(150, 2500, isVisible);
-  const years = useCountUp(5, 2500, isVisible);
+function Stats() {
+  const { ref, visible } = useReveal();
+  const c1 = useCountUp(2000, visible);
+  const c2 = useCountUp(500, visible);
+  const c3 = useCountUp(150, visible);
 
   return (
-    <section className="relative py-24 md:py-48 lg:py-64 bg-[#0a0a0a]">
-      <div ref={ref} className={`max-w-[1600px] mx-auto px-5 md:px-12 reveal-slow ${isVisible ? 'visible' : ''}`}>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-12">
+    <section className="bg-[#0a0a0a] py-16 md:py-24">
+      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
           {[
-            { value: clients, suffix: '+', label: 'Довольных клиентов' },
-            { value: models, suffix: '+', label: 'Моделей авто' },
-            { value: cities, suffix: '+', label: 'Городов доставки' },
-            { value: years, suffix: ' лет', label: 'На рынке' },
-          ].map((stat, i) => (
-            <div key={i} className="text-center lg:text-left">
-              <div className="number-massive text-white counter">{stat.value}{stat.suffix}</div>
-              <p className="text-white/30 text-xs md:text-base mt-3 md:mt-4 tracking-[-0.01em]">{stat.label}</p>
+            { v: c1, s: '+', l: 'Довольных клиентов' },
+            { v: c2, s: '+', l: 'Моделей автомобилей' },
+            { v: c3, s: '+', l: 'Городов доставки' },
+          ].map((x, i) => (
+            <div key={i} className="text-center md:text-left">
+              <div className="text-5xl md:text-7xl lg:text-8xl font-bold text-white counter tracking-[-0.03em] leading-none">
+                {x.v}{x.s}
+              </div>
+              <p className="text-white/30 text-xs md:text-sm mt-3 tracking-wide">{x.l}</p>
             </div>
           ))}
         </div>
@@ -488,41 +316,37 @@ function StatsSection() {
 }
 
 // ============ PROTECTION ============
-function ProtectionSection() {
-  const { ref, isVisible } = useScrollReveal();
+function Protection() {
+  const { ref, visible } = useReveal();
   const staggerRef = useRef<HTMLDivElement>(null);
-  const [staggerVisible, setStaggerVisible] = useState(false);
-
+  const [sv, setSv] = useState(false);
   useEffect(() => {
     if (!staggerRef.current) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setStaggerVisible(true); },
-      { threshold: 0.1 }
-    );
-    observer.observe(staggerRef.current);
-    return () => observer.disconnect();
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setSv(true); }, { threshold: 0.1 });
+    obs.observe(staggerRef.current);
+    return () => obs.disconnect();
   }, []);
 
+  const items = [
+    { n: '01', t: 'Солнце', d: 'Светопропускаемость 10%. Салон не нагревается. Экономия на кондиционере.' },
+    { n: '02', t: 'Насекомые', d: 'Мелкоячеистая сетка не пропускает мошек и комаров. Окна можно держать открытыми.' },
+    { n: '03', t: 'Приватность', d: 'Эффект тонировки без тонировки. Изнутри обзор, снаружи — ничего не видно.' },
+    { n: '04', t: 'Пыль', d: 'Салон остаётся чистым. Панель не выгорает. Меньше уборки.' },
+  ];
+
   return (
-    <section className="relative py-24 md:py-48 lg:py-64 bg-black">
-      <div ref={ref} className={`max-w-[1600px] mx-auto px-5 md:px-12 reveal ${isVisible ? 'visible' : ''}`}>
-        <div className="max-w-3xl mb-12 md:mb-20 lg:mb-28">
-          <p className="text-white/30 text-xs md:text-sm tracking-[0.2em] uppercase mb-4 md:mb-6">Защита</p>
-          <h2 className="text-white text-3xl md:text-6xl lg:text-7xl font-bold tracking-[-0.03em] leading-[1.0]">
-            Всё, от чего вы устали —<br />больше не проблема.
-          </h2>
-        </div>
-        <div ref={staggerRef} className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 stagger-children ${staggerVisible ? 'visible' : ''}`}>
-          {[
-            { num: '01', title: 'Солнце', desc: 'Светопропускаемость 10%. Салон не нагревается. Кондиционер работает эффективнее. Экономия на топливе.' },
-            { num: '02', title: 'Насекомые', desc: 'Мелкоячеистая сетка не пропускает мошек, комаров, пух. Окна можно держать открытыми — даже ночью.' },
-            { num: '03', title: 'Приватность', desc: 'Эффект тонировки без тонировки. Изнутри — отличный обзор. Снаружи — ничего не видно. Законно.' },
-            { num: '04', title: 'Пыль и грязь', desc: 'Салон остаётся чистым. Панель и обивка не выгорают. Меньше уборки. Больше удовольствия от авто.' },
-          ].map((item, i) => (
-            <div key={i} className="feature-card p-6 md:p-10 rounded-2xl md:rounded-3xl">
-              <span className="text-white/15 text-xs md:text-sm font-medium">{item.num}</span>
-              <h4 className="text-white text-xl md:text-2xl font-semibold mt-4 md:mt-6 mb-3 md:mb-4">{item.title}</h4>
-              <p className="text-white/40 text-sm leading-relaxed">{item.desc}</p>
+    <section className="bg-black py-16 md:py-24">
+      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
+        <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-4">Защита</p>
+        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] leading-[1.05] mb-10 md:mb-16 max-w-3xl">
+          Всё, от чего вы устали — больше не проблема.
+        </h2>
+        <div ref={staggerRef} className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children ${sv ? 'visible' : ''}`}>
+          {items.map((x, i) => (
+            <div key={i} className="feature-card p-6 rounded-2xl">
+              <span className="text-white/15 text-xs font-medium">{x.n}</span>
+              <h4 className="text-white text-lg font-semibold mt-3 mb-2">{x.t}</h4>
+              <p className="text-white/40 text-sm leading-relaxed">{x.d}</p>
             </div>
           ))}
         </div>
@@ -532,39 +356,35 @@ function ProtectionSection() {
 }
 
 // ============ INSTALLATION ============
-function InstallationSection() {
-  const { ref, isVisible } = useScrollReveal();
-  const parallaxRef = useParallax(0.15);
-
+function Installation() {
+  const { ref, visible } = useReveal();
   return (
-    <section className="relative py-24 md:py-48 lg:py-64 bg-[#0a0a0a] overflow-hidden">
-      <div className="max-w-[1600px] mx-auto px-5 md:px-12">
-        <div ref={ref} className={`grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16 lg:gap-24 items-center reveal ${isVisible ? 'visible' : ''}`}>
+    <section className="bg-[#0a0a0a] py-16 md:py-24">
+      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
           <div>
-            <p className="text-white/30 text-xs md:text-sm tracking-[0.2em] uppercase mb-4 md:mb-6">Установка</p>
-            <h2 className="text-white text-3xl md:text-6xl lg:text-7xl font-bold tracking-[-0.03em] leading-[0.95] mb-8 md:mb-10">
+            <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-4">Установка</p>
+            <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] leading-[1.05] mb-8">
               Пять секунд.<br />Без инструментов.
             </h2>
-            <div className="space-y-6 md:space-y-8">
+            <div className="space-y-5">
               {[
-                { step: '01', title: 'Приложите', desc: 'Поднесите шторку к оконному проёму вашего автомобиля' },
-                { step: '02', title: 'Магниты сработают', desc: 'Неодимовые магниты мгновенно притянутся к металлической рамке' },
-                { step: '03', title: 'Готово', desc: 'Шторка зафиксирована. Наслаждайтесь комфортом каждой поездки' },
-              ].map((item, i) => (
-                <div key={i} className="flex gap-4 md:gap-6">
-                  <span className="text-white/10 text-3xl md:text-5xl font-bold flex-shrink-0">{item.step}</span>
+                { s: '01', t: 'Приложите', d: 'Поднесите шторку к оконному проёму' },
+                { s: '02', t: 'Магниты сработают', d: 'Неодимовые магниты притянутся к рамке' },
+                { s: '03', t: 'Готово', d: 'Шторка зафиксирована. Наслаждайтесь' },
+              ].map((x, i) => (
+                <div key={i} className="flex gap-4">
+                  <span className="text-white/10 text-2xl md:text-4xl font-bold flex-shrink-0 w-10">{x.s}</span>
                   <div>
-                    <h4 className="text-white text-lg md:text-xl font-semibold mb-1 md:mb-2">{item.title}</h4>
-                    <p className="text-white/40 text-sm md:text-base">{item.desc}</p>
+                    <h4 className="text-white text-base md:text-lg font-semibold mb-1">{x.t}</h4>
+                    <p className="text-white/40 text-sm">{x.d}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <div ref={parallaxRef} className="relative aspect-[4/5] overflow-hidden rounded-2xl md:rounded-3xl">
-            <div className="parallax-img absolute inset-0">
-              <img src={P.g10} alt="" className="w-full h-full object-cover" />
-            </div>
+          <div className="aspect-[4/5] rounded-2xl overflow-hidden">
+            <img src={P.g10} alt="" className="w-full h-full object-cover" />
           </div>
         </div>
       </div>
@@ -573,46 +393,43 @@ function InstallationSection() {
 }
 
 // ============ COMPARISON ============
-function ComparisonSection() {
-  const { ref, isVisible } = useScrollReveal();
-
+function Comparison() {
+  const { ref, visible } = useReveal();
   return (
-    <section className="relative py-24 md:py-48 lg:py-64 bg-black">
-      <div ref={ref} className={`max-w-[1600px] mx-auto px-5 md:px-12 reveal-slow ${isVisible ? 'visible' : ''}`}>
-        <div className="text-center max-w-3xl mx-auto mb-12 md:mb-20 lg:mb-28">
-          <p className="text-white/30 text-xs md:text-sm tracking-[0.2em] uppercase mb-4 md:mb-6">Сравнение</p>
-          <h2 className="text-white text-3xl md:text-6xl lg:text-7xl font-bold tracking-[-0.03em] leading-[1.0]">
-            VELES vs Тонировка.
-          </h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 max-w-5xl mx-auto">
-          <div className="p-6 md:p-14 rounded-2xl md:rounded-3xl border border-white/10 bg-white/[0.02]">
-            <h3 className="text-white/25 text-xl md:text-2xl font-semibold mb-6 md:mb-10">Обычная тонировка</h3>
-            <ul className="space-y-4 md:space-y-5">
-              {['Штрафы и предписания ГИБДД', 'Нельзя снять на месте', 'Повреждает стекло при демонтаже', 'Ухудшает обзор в тёмное время', 'Одноразовое решение', 'Только в специализированном сервисе'].map((item, i) => (
-                <li key={i} className="flex items-start gap-3 md:gap-4 text-white/20 text-sm md:text-base">
-                  <span className="mt-1.5 w-4 h-4 md:w-5 md:h-5 rounded-full border border-white/10 flex-shrink-0 flex items-center justify-center">
-                    <span className="w-1.5 md:w-2 h-[1px] bg-white/20" />
+    <section className="bg-black py-16 md:py-24">
+      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
+        <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-4 text-center">Сравнение</p>
+        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] text-center mb-10 md:mb-16">
+          VELES vs Тонировка
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 max-w-4xl mx-auto">
+          <div className="p-6 md:p-10 rounded-2xl border border-white/10 bg-white/[0.02]">
+            <h3 className="text-white/30 text-lg md:text-xl font-semibold mb-6">Тонировка</h3>
+            <ul className="space-y-3">
+              {['Штрафы ГИБДД', 'Нельзя снять на месте', 'Повреждает стекло', 'Ухудшает обзор ночью', 'Одноразовое решение'].map((x, i) => (
+                <li key={i} className="flex items-start gap-3 text-white/25 text-sm">
+                  <span className="mt-1.5 w-3 h-3 rounded-full border border-white/15 flex-shrink-0 flex items-center justify-center">
+                    <span className="w-1.5 h-[1px] bg-white/25" />
                   </span>
-                  {item}
+                  {x}
                 </li>
               ))}
             </ul>
           </div>
-          <div className="p-6 md:p-14 rounded-2xl md:rounded-3xl border border-white/25 bg-white/[0.04]">
-            <div className="flex items-center gap-2 md:gap-3 mb-6 md:mb-10">
-              <h3 className="text-white text-xl md:text-2xl font-semibold">VELES</h3>
-              <span className="text-[9px] md:text-[10px] text-white/50 border border-white/20 rounded-full px-2 py-0.5 md:px-2.5 md:py-1 uppercase tracking-wider">Рекомендуем</span>
+          <div className="p-6 md:p-10 rounded-2xl border border-white/25 bg-white/[0.04]">
+            <div className="flex items-center gap-2 mb-6">
+              <h3 className="text-white text-lg md:text-xl font-semibold">VELES</h3>
+              <span className="text-[9px] text-white/50 border border-white/20 rounded-full px-2 py-0.5 uppercase">Рекомендуем</span>
             </div>
-            <ul className="space-y-4 md:space-y-5">
-              {['Полностью законно — не тонировка', 'Снимается за 10 секунд', 'Не повреждает автомобиль', 'Отличный обзор в любое время', 'Многоразовое использование', 'Установка самостоятельно за 5 секунд'].map((item, i) => (
-                <li key={i} className="flex items-start gap-3 md:gap-4 text-white/80 text-sm md:text-base">
-                  <span className="mt-1.5 w-4 h-4 md:w-5 md:h-5 rounded-full border border-white/40 flex-shrink-0 flex items-center justify-center">
-                    <svg className="w-2.5 h-2.5 md:w-3 md:h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <ul className="space-y-3">
+              {['Полностью законно', 'Снимается за 10 секунд', 'Не повреждает авто', 'Отличный обзор всегда', 'Многоразовое'].map((x, i) => (
+                <li key={i} className="flex items-start gap-3 text-white/80 text-sm">
+                  <span className="mt-1.5 w-3 h-3 rounded-full border border-white/40 flex-shrink-0 flex items-center justify-center">
+                    <svg className="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                     </svg>
                   </span>
-                  {item}
+                  {x}
                 </li>
               ))}
             </ul>
@@ -623,31 +440,28 @@ function ComparisonSection() {
   );
 }
 
-// ============ FOR WHO ============
-function ForWhoSection() {
-  const { ref, isVisible } = useScrollReveal();
-
+// ============ GALLERY ============
+function Gallery() {
+  const { ref, visible } = useReveal();
+  const images = [P.g1, P.g2, P.g3, P.g4, P.g5, P.g6, P.g8, P.g9, P.g10];
   return (
-    <section className="relative py-24 md:py-48 lg:py-64 bg-[#0a0a0a]">
-      <div ref={ref} className={`max-w-[1600px] mx-auto px-5 md:px-12 reveal ${isVisible ? 'visible' : ''}`}>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-16 lg:gap-12">
-          <div className="lg:col-span-5">
-            <p className="text-white/30 text-xs md:text-sm tracking-[0.2em] uppercase mb-4 md:mb-6">Для кого</p>
-            <h2 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] leading-[1.05] mb-6 md:mb-8">
-              Для тех, кто проводит в машине жизнь.
-            </h2>
-            <p className="text-white/50 text-base md:text-xl leading-relaxed">
-              Таксисты и дальнобойщики. Родители с маленькими детьми. Путешественники и те, кто каждый день стоит в пробках. 
-              Все, кто понимает: комфорт в дороге — это не роскошь, а необходимость.
-            </p>
+    <section id="gallery" className="bg-black py-16 md:py-24">
+      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
+        <div className="flex items-end justify-between mb-8 md:mb-12">
+          <div>
+            <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-3">Галерея</p>
+            <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em]">Реальные установки.</h2>
           </div>
-          <div className="lg:col-span-7 grid grid-cols-2 gap-3 md:gap-4">
-            {[P.g5, P.g6, P.g9, P.g10].map((src, i) => (
-              <div key={i} className={`aspect-square overflow-hidden rounded-xl md:rounded-2xl ${i % 2 === 1 ? 'mt-6 md:mt-12' : ''}`}>
-                <img src={src} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" loading="lazy" />
-              </div>
-            ))}
-          </div>
+          <a href="https://vk.com/avtoshtorki_abakan" target="_blank" rel="noopener noreferrer" className="hidden md:block text-white/40 hover:text-white text-sm transition-colors">
+            VK →
+          </a>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
+          {images.map((src, i) => (
+            <div key={i} className={`aspect-square rounded-lg md:rounded-xl overflow-hidden ${i === 0 ? 'md:col-span-2 md:row-span-2' : ''}`}>
+              <img src={src} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" loading="lazy" />
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -655,57 +469,46 @@ function ForWhoSection() {
 }
 
 // ============ REVIEWS ============
-function ReviewsSection() {
-  const { ref, isVisible } = useScrollReveal();
+function Reviews() {
+  const { ref, visible } = useReveal();
   const staggerRef = useRef<HTMLDivElement>(null);
-  const [staggerVisible, setStaggerVisible] = useState(false);
-
+  const [sv, setSv] = useState(false);
   useEffect(() => {
     if (!staggerRef.current) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setStaggerVisible(true); },
-      { threshold: 0.1 }
-    );
-    observer.observe(staggerRef.current);
-    return () => observer.disconnect();
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setSv(true); }, { threshold: 0.1 });
+    obs.observe(staggerRef.current);
+    return () => obs.disconnect();
   }, []);
 
   const reviews = [
-    { text: 'Заказал шторки на Камри — качество просто космос. Установил за 5 минут, магниты держат мёртво. Теперь в машине реально прохладно даже в +35.', name: 'Алексей К.', car: 'Toyota Camry' },
-    { text: 'Ребёнок наконец-то спит в машине днём! Шторки блокируют солнце, а обзор для меня остаётся отличный. Рекомендую всем мамам.', name: 'Мария С.', car: 'Kia Sportage' },
-    { text: 'Лучше любой тонировки. Законно, удобно, красиво. Снял за 10 секунд когда подъехал к посту — никаких проблем.', name: 'Дмитрий В.', car: 'Hyundai Tucson' },
-    { text: 'Качество материалов на высоте. Кожаные хлястики, ровные швы, магниты мощные. Видно, что делали с душой.', name: 'Ольга П.', car: 'Volkswagen Tiguan' },
-    { text: 'Второй раз заказываю — теперь на вторую машину. Пыль перестала лететь в салон, насекомые тоже не пробираются.', name: 'Сергей М.', car: 'Mazda CX-5' },
-    { text: 'Подруга посоветовала — не пожалела ни секунды. Салон не выгорает, кондиционер работает эффективнее.', name: 'Анна Л.', car: 'Nissan X-Trail' },
+    { t: 'Заказал шторки на Камри — качество космос. Установил за 5 минут, магниты держат мёртво.', n: 'Алексей К.', c: 'Toyota Camry' },
+    { t: 'Ребёнок наконец-то спит в машине днём! Шторки блокируют солнце, обзор отличный.', n: 'Мария С.', c: 'Kia Sportage' },
+    { t: 'Лучше любой тонировки. Законно, удобно. Снял за 10 секунд — никаких проблем.', n: 'Дмитрий В.', c: 'Hyundai Tucson' },
+    { t: 'Качество материалов на высоте. Кожаные хлястики, ровные швы, магниты мощные.', n: 'Ольга П.', c: 'Volkswagen Tiguan' },
+    { t: 'Второй раз заказываю. Пыль перестала лететь в салон, насекомые не пробираются.', n: 'Сергей М.', c: 'Mazda CX-5' },
+    { t: 'Салон не выгорает, кондиционер работает эффективнее. Рекомендую.', n: 'Анна Л.', c: 'Nissan X-Trail' },
   ];
 
   return (
-    <section id="reviews" className="relative py-24 md:py-48 lg:py-64 bg-black">
-      <div ref={ref} className={`max-w-[1600px] mx-auto px-5 md:px-12 reveal ${isVisible ? 'visible' : ''}`}>
-        <div className="mb-12 md:mb-24">
-          <p className="text-white/30 text-xs md:text-sm tracking-[0.2em] uppercase mb-4 md:mb-6">Отзывы</p>
-          <h2 className="text-white text-3xl md:text-6xl lg:text-7xl font-bold tracking-[-0.03em]">Что говорят клиенты.</h2>
-        </div>
-        <div ref={staggerRef} className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 stagger-children ${staggerVisible ? 'visible' : ''}`}>
-          {reviews.map((review, i) => (
-            <div key={i} className="feature-card p-6 md:p-10 rounded-2xl md:rounded-3xl">
-              <p className="text-white/70 text-sm md:text-base leading-relaxed mb-6 md:mb-10">"{review.text}"</p>
+    <section id="reviews" className="bg-[#0a0a0a] py-16 md:py-24">
+      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
+        <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-4">Отзывы</p>
+        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-8 md:mb-12">Что говорят клиенты.</h2>
+        <div ref={staggerRef} className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children ${sv ? 'visible' : ''}`}>
+          {reviews.map((r, i) => (
+            <div key={i} className="feature-card p-6 rounded-2xl">
+              <p className="text-white/70 text-sm leading-relaxed mb-5">"{r.t}"</p>
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-white/10 flex items-center justify-center">
-                  <span className="text-white/60 text-xs md:text-sm font-medium">{review.name[0]}</span>
+                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                  <span className="text-white/60 text-xs font-medium">{r.n[0]}</span>
                 </div>
                 <div>
-                  <p className="text-white text-sm font-medium">{review.name}</p>
-                  <p className="text-white/30 text-xs">{review.car}</p>
+                  <p className="text-white text-sm font-medium">{r.n}</p>
+                  <p className="text-white/30 text-xs">{r.c}</p>
                 </div>
               </div>
             </div>
           ))}
-        </div>
-        <div className="mt-8 md:mt-12 text-center">
-          <a href="https://vk.com/avtoshtorki_abakan" target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white text-sm transition-colors inline-flex items-center gap-2">
-            Все отзывы на VK →
-          </a>
         </div>
       </div>
     </section>
@@ -713,36 +516,34 @@ function ReviewsSection() {
 }
 
 // ============ FAQ ============
-function FAQSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-  const { ref, isVisible } = useScrollReveal();
+function FAQ() {
+  const [open, setOpen] = useState<number | null>(null);
+  const { ref, visible } = useReveal();
   const faqs = [
-    { q: 'Подойдут ли шторки на мой автомобиль?', a: 'Мы изготавливаем шторки индивидуально под каждую модель. У нас более 500 моделей в базе. Укажите марку, модель и год выпуска — мы подберём идеальный размер.' },
-    { q: 'Не ухудшится ли обзор?', a: 'Мелкоячеистая премиум-сетка обеспечивает отличную прозрачность изнутри. Вы видите всё на дороге, при этом снаружи салон полностью скрыт.' },
-    { q: 'Как крепятся шторки?', a: 'Неодимовые магниты вшиты в каркас и притягиваются к металлической рамке двери. Никакого клея, сверления или скотча — краска не повреждается.' },
-    { q: 'Можно ли опускать стёкла?', a: 'Да, стёкла можно опускать — шторки остаются на месте благодаря магнитному креплению. При этом обеспечивается вентиляция без пыли и насекомых.' },
-    { q: 'Какой срок изготовления?', a: 'Стандартный срок — 1-3 рабочих дня. Доставка по всей России занимает 3-7 дней в зависимости от региона.' },
-    { q: 'Это законно?', a: 'Абсолютно. Каркасные автошторки не являются тонировкой и не подпадают под требования ТР ТС 014/2011. Никаких штрафов и ограничений.' },
+    { q: 'Подойдут ли шторки на мой автомобиль?', a: 'Мы изготавливаем шторки индивидуально под каждую модель. Более 500 моделей в базе.' },
+    { q: 'Не ухудшится ли обзор?', a: 'Мелкоячеистая сетка обеспечивает отличную прозрачность изнутри. Снаружи салон скрыт.' },
+    { q: 'Как крепятся шторки?', a: 'Неодимовые магниты вшиты в каркас. Никакого клея или скотча — краска не повреждается.' },
+    { q: 'Можно ли опускать стёкла?', a: 'Да, шторки остаются на месте. Обеспечивается вентиляция без пыли и насекомых.' },
+    { q: 'Какой срок изготовления?', a: '1-3 рабочих дня. Доставка по России 3-7 дней.' },
+    { q: 'Это законно?', a: 'Да. Каркасные шторки не являются тонировкой. Никаких штрафов.' },
   ];
 
   return (
-    <section className="relative py-24 md:py-48 lg:py-64 bg-[#0a0a0a]">
-      <div ref={ref} className={`max-w-4xl mx-auto px-5 md:px-12 reveal ${isVisible ? 'visible' : ''}`}>
-        <div className="text-center mb-12 md:mb-24">
-          <p className="text-white/30 text-xs md:text-sm tracking-[0.2em] uppercase mb-4 md:mb-6">FAQ</p>
-          <h2 className="text-white text-3xl md:text-6xl font-bold tracking-[-0.03em]">Частые вопросы.</h2>
-        </div>
+    <section className="bg-black py-16 md:py-24">
+      <div ref={ref} className={`max-w-3xl mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
+        <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-4 text-center">FAQ</p>
+        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] text-center mb-10 md:mb-14">Частые вопросы.</h2>
         <div className="space-y-0">
-          {faqs.map((faq, i) => (
-            <div key={i} className={`border-b border-white/10 transition-colors duration-300 ${openIndex === i ? 'border-white/20' : ''}`}>
-              <button onClick={() => setOpenIndex(openIndex === i ? null : i)} className="w-full py-5 md:py-8 flex items-center justify-between text-left">
-                <span className={`text-base md:text-xl font-medium transition-colors duration-300 pr-6 md:pr-8 ${openIndex === i ? 'text-white' : 'text-white/60'}`}>{faq.q}</span>
-                <svg className={`w-5 h-5 text-white/40 transition-transform duration-500 flex-shrink-0 ${openIndex === i ? 'rotate-45' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          {faqs.map((f, i) => (
+            <div key={i} className="border-b border-white/10">
+              <button onClick={() => setOpen(open === i ? null : i)} className="w-full py-5 flex items-center justify-between text-left gap-4">
+                <span className={`text-sm md:text-base font-medium transition-colors ${open === i ? 'text-white' : 'text-white/60'}`}>{f.q}</span>
+                <svg className={`w-4 h-4 text-white/40 transition-transform flex-shrink-0 ${open === i ? 'rotate-45' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
                 </svg>
               </button>
-              <div className={`overflow-hidden transition-all duration-500 ${openIndex === i ? 'max-h-48 pb-6 md:pb-8' : 'max-h-0'}`}>
-                <p className="text-white/40 text-sm md:text-base leading-relaxed">{faq.a}</p>
+              <div className={`overflow-hidden transition-all duration-300 ${open === i ? 'max-h-32 pb-5' : 'max-h-0'}`}>
+                <p className="text-white/40 text-sm leading-relaxed">{f.a}</p>
               </div>
             </div>
           ))}
@@ -752,60 +553,55 @@ function FAQSection() {
   );
 }
 
-// ============ ORDER FORM ============
-function OrderSection() {
-  const { ref, isVisible } = useScrollReveal();
-  const [formData, setFormData] = useState({ name: '', car: '', year: '', phone: '' });
-  const [submitted, setSubmitted] = useState(false);
-  const handleSubmit = useCallback((e: React.FormEvent) => {
+// ============ ORDER ============
+function Order() {
+  const { ref, visible } = useReveal();
+  const [form, setForm] = useState({ name: '', car: '', year: '', phone: '' });
+  const [done, setDone] = useState(false);
+  const submit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 5000);
-    setFormData({ name: '', car: '', year: '', phone: '' });
+    setDone(true);
+    setTimeout(() => setDone(false), 5000);
+    setForm({ name: '', car: '', year: '', phone: '' });
   }, []);
 
   return (
-    <section id="order" className="relative py-24 md:py-48 lg:py-64 bg-black">
-      <div ref={ref} className={`max-w-3xl mx-auto px-5 md:px-12 reveal-slow ${isVisible ? 'visible' : ''}`}>
-        <div className="text-center mb-10 md:mb-20">
-          <p className="text-white/30 text-xs md:text-sm tracking-[0.2em] uppercase mb-4 md:mb-6">Заказ</p>
-          <h2 className="text-white text-3xl md:text-6xl lg:text-7xl font-bold tracking-[-0.03em] leading-[1.0]">
-            Закажите свои<br />шторки.
-          </h2>
-          <p className="mt-4 md:mt-6 text-white/40 text-base md:text-xl">Оставьте заявку — мы свяжемся в течение 30 минут.</p>
+    <section id="order" className="bg-[#0a0a0a] py-16 md:py-24">
+      <div ref={ref} className={`max-w-2xl mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
+        <div className="text-center mb-10">
+          <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-4">Заказ</p>
+          <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em]">Закажите шторки.</h2>
+          <p className="mt-3 text-white/40 text-sm md:text-base">Свяжемся в течение 30 минут.</p>
         </div>
-        {submitted ? (
-          <div className="text-center py-16 md:py-20 px-6 md:px-8 rounded-2xl md:rounded-3xl border border-white/10">
-            <div className="w-14 h-14 md:w-16 md:h-16 rounded-full border border-white/20 flex items-center justify-center mx-auto mb-4 md:mb-6">
-              <svg className="w-7 h-7 md:w-8 md:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {done ? (
+          <div className="text-center py-16 rounded-2xl border border-white/10">
+            <div className="w-14 h-14 rounded-full border border-white/20 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h3 className="text-white text-xl md:text-2xl font-semibold mb-2">Заявка отправлена</h3>
-            <p className="text-white/40 text-sm md:text-base">Мы свяжемся с вами в ближайшее время</p>
+            <h3 className="text-white text-xl font-semibold mb-1">Заявка отправлена</h3>
+            <p className="text-white/40 text-sm">Мы свяжемся с вами</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+          <form onSubmit={submit} className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[
-                { key: 'name', placeholder: 'Ваше имя', type: 'text' },
-                { key: 'car', placeholder: 'Марка и модель авто', type: 'text' },
-                { key: 'year', placeholder: 'Год выпуска', type: 'text' },
-                { key: 'phone', placeholder: 'Телефон', type: 'tel' },
-              ].map((field) => (
+                { k: 'name', p: 'Ваше имя', t: 'text' },
+                { k: 'car', p: 'Марка и модель', t: 'text' },
+                { k: 'year', p: 'Год выпуска', t: 'text' },
+                { k: 'phone', p: 'Телефон', t: 'tel' },
+              ].map(f => (
                 <input
-                  key={field.key}
-                  type={field.type}
-                  required
-                  value={formData[field.key as keyof typeof formData]}
-                  onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-5 md:px-6 py-4 md:py-5 text-white placeholder-white/20 focus:border-white/30 focus:outline-none transition-colors text-sm md:text-base"
-                  placeholder={field.placeholder}
+                  key={f.k} type={f.t} required
+                  value={form[f.k as keyof typeof form]}
+                  onChange={e => setForm({ ...form, [f.k]: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
+                  placeholder={f.p}
                 />
               ))}
             </div>
-            <button type="submit" className="btn-primary w-full py-4 md:py-5 rounded-full text-sm md:text-base font-medium mt-2 md:mt-4">Отправить заявку</button>
-            <p className="text-white/20 text-[10px] md:text-xs text-center mt-3 md:mt-4">Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности</p>
+            <button type="submit" className="btn-primary w-full py-3.5 rounded-full text-sm font-medium mt-2">Отправить заявку</button>
           </form>
         )}
       </div>
@@ -814,28 +610,22 @@ function OrderSection() {
 }
 
 // ============ FINAL CTA ============
-function FinalCTASection() {
-  const { ref, isVisible } = useScrollReveal();
-  const parallaxRef = useParallax(0.15);
-
+function FinalCTA() {
+  const { ref, visible } = useReveal();
   return (
-    <section className="relative h-[80vh] md:h-[100dvh] min-h-[500px] flex items-center justify-center overflow-hidden">
-      <div ref={parallaxRef} className="absolute inset-0">
-        <div className="parallax-img absolute inset-0">
-          <img src={P.g1} alt="" className="w-full h-full object-cover" />
-        </div>
-        <div className="absolute inset-0 bg-black/60" />
-      </div>
-      <div ref={ref} className={`relative z-10 max-w-[1400px] mx-auto px-5 md:px-12 text-center reveal-slow ${isVisible ? 'visible' : ''}`}>
-        <h2 className="text-white text-3xl md:text-6xl lg:text-[5.5rem] xl:text-[7rem] font-bold tracking-[-0.03em] leading-[0.95] max-w-5xl mx-auto">
-          Ваше следующее<br />поездка может быть<br />другой.
+    <section className="relative h-[70vh] md:h-[90vh] min-h-[400px] flex items-center justify-center overflow-hidden">
+      <img src={P.g1} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <div className="absolute inset-0 bg-black/60" />
+      <div ref={ref} className={`relative z-10 max-w-[1200px] mx-auto px-5 md:px-10 text-center reveal-slow ${visible ? 'visible' : ''}`}>
+        <h2 className="text-white text-3xl md:text-6xl lg:text-7xl font-bold tracking-[-0.03em] leading-[0.95]">
+          Ваша следующая<br />поездка может быть<br />другой.
         </h2>
-        <p className="mt-6 md:mt-12 text-white/50 text-base md:text-2xl max-w-xl mx-auto leading-relaxed font-light">
+        <p className="mt-6 md:mt-10 text-white/50 text-sm md:text-xl max-w-lg mx-auto leading-relaxed">
           Один заказ — и каждый день за рулём станет комфортнее.
         </p>
-        <div className="mt-8 md:mt-14 flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4">
-          <a href="#order" className="btn-primary px-8 md:px-10 py-3.5 md:py-4 rounded-full text-sm">Оформить заказ</a>
-          <a href="tel:+79134421234" className="btn-secondary px-8 md:px-10 py-3.5 md:py-4 rounded-full text-sm">+7 (913) 442-12-34</a>
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <a href="#order" className="btn-primary px-8 py-3 rounded-full text-sm">Оформить заказ</a>
+          <a href="tel:+79134421234" className="btn-secondary px-8 py-3 rounded-full text-sm">+7 (913) 442-12-34</a>
         </div>
       </div>
     </section>
@@ -843,38 +633,31 @@ function FinalCTASection() {
 }
 
 // ============ CONTACTS ============
-function ContactsSection() {
-  const { ref, isVisible } = useScrollReveal();
+function Contacts() {
+  const { ref, visible } = useReveal();
   return (
-    <section id="contacts" className="relative py-24 md:py-48 lg:py-64 bg-[#0a0a0a]">
-      <div ref={ref} className={`max-w-[1600px] mx-auto px-5 md:px-12 reveal ${isVisible ? 'visible' : ''}`}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-16 lg:gap-24">
+    <section id="contacts" className="bg-black py-16 md:py-24">
+      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
           <div>
-            <p className="text-white/30 text-xs md:text-sm tracking-[0.2em] uppercase mb-4 md:mb-6">Контакты</p>
-            <h2 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] leading-[1.05] mb-8 md:mb-10">
-              Свяжитесь с нами.
-            </h2>
-            <p className="text-white/50 text-base md:text-xl leading-relaxed mb-10 md:mb-14">
-              Мы всегда на связи. Поможем подобрать шторки, ответим на вопросы и оформим заказ.
-            </p>
-            <div className="space-y-8 md:space-y-10">
+            <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-4">Контакты</p>
+            <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-8">Свяжитесь с нами.</h2>
+            <div className="space-y-6">
               {[
-                { label: 'Телефон', value: '+7 (913) 442-12-34', href: 'tel:+79134421234' },
-                { label: 'WhatsApp', value: 'Написать', href: 'https://wa.me/79134421234' },
-                { label: 'Адрес', value: 'г. Абакан, ул. Ровная 16', href: '#' },
-                { label: 'Режим работы', value: 'Пн-Вс: 9:00 — 18:00', href: '#' },
-              ].map((item, i) => (
+                { l: 'Телефон', v: '+7 (913) 442-12-34', h: 'tel:+79134421234' },
+                { l: 'WhatsApp', v: 'Написать', h: 'https://wa.me/79134421234' },
+                { l: 'Адрес', v: 'г. Абакан, ул. Ровная 16', h: '#' },
+                { l: 'Режим', v: 'Пн-Вс: 9:00 — 18:00', h: '#' },
+              ].map((x, i) => (
                 <div key={i}>
-                  <p className="text-white/25 text-[10px] md:text-xs tracking-[0.2em] uppercase mb-1 md:mb-2">{item.label}</p>
-                  <a href={item.href} className="text-white text-lg md:text-2xl font-medium hover:text-white/70 transition-colors">{item.value}</a>
+                  <p className="text-white/25 text-[10px] tracking-[0.2em] uppercase mb-1">{x.l}</p>
+                  <a href={x.h} className="text-white text-lg md:text-xl font-medium hover:text-white/70 transition-colors">{x.v}</a>
                 </div>
               ))}
             </div>
           </div>
-          <div className="flex items-center justify-center">
-            <div className="w-full aspect-square rounded-2xl md:rounded-3xl overflow-hidden">
-              <img src={P.g8} alt="" className="w-full h-full object-cover" />
-            </div>
+          <div className="aspect-square rounded-2xl overflow-hidden">
+            <img src={P.g8} alt="" className="w-full h-full object-cover" />
           </div>
         </div>
       </div>
@@ -885,45 +668,44 @@ function ContactsSection() {
 // ============ FOOTER ============
 function Footer() {
   return (
-    <footer className="py-10 md:py-12 border-t border-white/5">
-      <div className="max-w-[1600px] mx-auto px-5 md:px-12">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
-          <div className="flex items-center gap-4 md:gap-6">
-            <span className="text-white font-semibold tracking-tight text-sm md:text-base">VELES</span>
-            <span className="text-white/20 text-xs md:text-sm">Каркасные автошторки</span>
-          </div>
-          <div className="flex items-center gap-4 md:gap-6">
-            <a href="https://vk.com/avtoshtorki_abakan" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-white text-xs md:text-sm transition-colors">VK</a>
-            <a href="tel:+79134421234" className="text-white/30 hover:text-white text-xs md:text-sm transition-colors">+7 (913) 442-12-34</a>
-          </div>
-          <p className="text-white/15 text-[10px] md:text-xs">© 2024 VELES. Все права защищены.</p>
+    <footer className="py-8 border-t border-white/5">
+      <div className="max-w-[1440px] mx-auto px-5 md:px-10 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <span className="text-white font-semibold text-sm">VELES</span>
+          <span className="text-white/20 text-xs">Каркасные автошторки</span>
         </div>
+        <div className="flex items-center gap-4">
+          <a href="https://vk.com/avtoshtorki_abakan" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-white text-xs transition-colors">VK</a>
+          <a href="tel:+79134421234" className="text-white/30 hover:text-white text-xs transition-colors">+7 (913) 442-12-34</a>
+        </div>
+        <p className="text-white/15 text-[10px]">© 2024 VELES</p>
       </div>
     </footer>
   );
 }
 
-// ============ MAIN APP ============
+// ============ APP ============
 export default function App() {
   return (
-    <div className="relative overflow-x-hidden">
-      <ScrollProgress />
-      <Navigation />
-      <HeroSection />
-      <ManifestoSection />
-      <ProductIntro />
-      <StickyStorySection />
-      <ProtectionSection />
-      <GallerySection />
-      <StatsSection />
-      <InstallationSection />
-      <ComparisonSection />
-      <ForWhoSection />
-      <ReviewsSection />
-      <FAQSection />
-      <OrderSection />
-      <FinalCTASection />
-      <ContactsSection />
+    <div className="overflow-x-hidden">
+      <Nav />
+      <Hero />
+      <Manifesto />
+      <FullImage src={P.p1} caption="Создано для тех, кто ценит каждую деталь." />
+      <Product />
+      <Tech />
+      <FullImage src={P.g6} />
+      <Stats />
+      <Protection />
+      <Installation />
+      <FullImage src={P.g3} />
+      <Comparison />
+      <Gallery />
+      <Reviews />
+      <FAQ />
+      <Order />
+      <FinalCTA />
+      <Contacts />
       <Footer />
     </div>
   );
