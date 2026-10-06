@@ -44,6 +44,34 @@ const IMG = {
   g6: 'https://sun9-34.vkuserphoto.ru/s/v1/ig2/K8Gwoe4egTnBf3TQ7qGMG20jsWiuX5X2zySdLARIv_drZk-yCpl4Ul7kxOv5Cjn9P3vAGsUKf99uVtHdGOHX4AYg.jpg?quality=95&as=32x45,48x68,72x102,108x153,160x226,240x339,360x509,480x679,540x764,640x905,720x1018,1080x1527,1191x1684&from=bu&u=ozG8KPGAX22-DaXhgozmmbEamFGwgLIodhlaWJzsTnA&cs=1191x0',
 };
 
+// ============ COOKIE BANNER ============
+function CookieBanner() {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const accepted = localStorage.getItem('cookies_accepted');
+    if (!accepted) {
+      setTimeout(() => setVisible(true), 2000);
+    }
+  }, []);
+  const accept = () => {
+    localStorage.setItem('cookies_accepted', 'true');
+    setVisible(false);
+  };
+  if (!visible) return null;
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-[100] p-4 md:p-6 bg-black/95 backdrop-blur-xl border-t border-white/10">
+      <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        <p className="text-white/70 text-xs md:text-sm text-center md:text-left">
+          Мы используем cookies для улучшения работы сайта. Продолжая использовать сайт, вы соглашаетесь с <a href="#" className="underline hover:text-white">политикой конфиденциальности</a>.
+        </p>
+        <button onClick={accept} className="bg-white text-black px-6 py-2.5 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors whitespace-nowrap">
+          Принять
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ============ NAV ============
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
@@ -61,9 +89,14 @@ function Nav() {
   return (
     <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${scrolled ? 'py-3 bg-black/90 backdrop-blur-2xl' : 'py-5 bg-transparent'}`}>
       <div className="max-w-[1440px] mx-auto px-5 md:px-10 flex items-center justify-between">
-        <a href="#hero" className="text-xl font-semibold tracking-tight">VELES</a>
+        <a href="#hero" className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+            <span className="text-white font-bold text-lg">V</span>
+          </div>
+          <span className="text-xl font-semibold tracking-tight">VELES</span>
+        </a>
         <div className="hidden md:flex items-center gap-8">
-          {[['Продукт', '#product'], ['Технологии', '#tech'], ['Галерея', '#gallery'], ['Отзывы', '#reviews']].map(([l, h]) => (
+          {[['Продукт', '#product'], ['Технологии', '#tech'], ['Каталог', '#catalog'], ['Отзывы', '#reviews']].map(([l, h]) => (
             <a key={h} href={h} className="text-[13px] text-white/70 hover:text-white transition-colors">{l}</a>
           ))}
         </div>
@@ -76,7 +109,7 @@ function Nav() {
       </div>
       <div className={`md:hidden fixed inset-0 bg-black z-40 transition-all duration-500 ${open ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
         <div className="flex flex-col items-center justify-center h-full gap-8">
-          {[['Продукт', '#product'], ['Технологии', '#tech'], ['Галерея', '#gallery'], ['Отзывы', '#reviews'], ['Заказать', '#order']].map(([l, h]) => (
+          {[['Продукт', '#product'], ['Технологии', '#tech'], ['Каталог', '#catalog'], ['Отзывы', '#reviews'], ['Заказать', '#order']].map(([l, h]) => (
             <a key={h} href={h} onClick={() => setOpen(false)} className="text-2xl text-white/80">{l}</a>
           ))}
         </div>
@@ -92,31 +125,242 @@ function Hero() {
       <img src={IMG.hero} alt="Каркасные автошторки VELES" className="absolute inset-0 w-full h-full object-cover opacity-60" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80" />
       <div className="relative z-10 text-center px-5 md:px-10 max-w-4xl">
-        <p className="text-white/60 text-xs md:text-sm tracking-[0.3em] uppercase mb-6">Каркасные автошторки</p>
+        <p className="text-white/60 text-xs md:text-sm tracking-[0.3em] uppercase mb-6">Каркасные автошторки премиум-класса</p>
         <h1 className="text-white text-4xl md:text-6xl lg:text-7xl font-bold tracking-[-0.03em] leading-[1.05] mb-6">
           VELES
         </h1>
         <p className="text-white/70 text-base md:text-xl max-w-2xl mx-auto leading-relaxed mb-8">
-          Премиальные шторки на магнитном креплении. Защита от солнца, пыли и насекомых. Установка за 5 секунд.
+          Премиальные шторки на магнитном креплении. Защита от солнца, пыли и насекомых. Установка за 5 секунд. Производство в Абакане.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <a href="#order" className="bg-white text-black px-8 py-3.5 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors">Заказать шторки</a>
-          <a href="#product" className="border border-white/30 text-white px-8 py-3.5 rounded-full text-sm font-medium hover:bg-white/5 transition-colors">Подробнее</a>
+          <a href="#catalog" className="border border-white/30 text-white px-8 py-3.5 rounded-full text-sm font-medium hover:bg-white/5 transition-colors">Каталог моделей</a>
         </div>
       </div>
     </section>
   );
 }
 
-// ============ WHAT IS IT ============
-function WhatIsIt() {
+// ============ ABOUT COMPANY ============
+function AboutCompany() {
+  const { ref, visible } = useReveal();
+  return (
+    <section className="bg-black py-20 md:py-32">
+      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-20 items-center">
+          <div>
+            <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">О компании</p>
+            <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] leading-[1.1] mb-6">
+              Производство в Абакане
+            </h2>
+            <p className="text-white/60 text-base md:text-lg leading-relaxed mb-4">
+              Компания VELES специализируется на производстве каркасных автошторок премиум-класса с 2019 года. 
+              Каждое изделие создаётся вручную с использованием качественных материалов.
+            </p>
+            <p className="text-white/60 text-base md:text-lg leading-relaxed mb-6">
+              Мы изготавливаем шторки индивидуально под каждую модель автомобиля — с точностью до миллиметра. 
+              Более 500 моделей в каталоге, доставка по всей России.
+            </p>
+            <div className="grid grid-cols-3 gap-6">
+              <div>
+                <div className="text-3xl md:text-4xl font-bold text-white">5+</div>
+                <p className="text-white/40 text-xs mt-1">лет на рынке</p>
+              </div>
+              <div>
+                <div className="text-3xl md:text-4xl font-bold text-white">2000+</div>
+                <p className="text-white/40 text-xs mt-1">клиентов</p>
+              </div>
+              <div>
+                <div className="text-3xl md:text-4xl font-bold text-white">500+</div>
+                <p className="text-white/40 text-xs mt-1">моделей авто</p>
+              </div>
+            </div>
+          </div>
+          <div className="aspect-square rounded-2xl overflow-hidden">
+            <img src={IMG.g6} alt="Производство VELES" className="w-full h-full object-cover" />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============ CATALOG ============
+function Catalog() {
+  const { ref, visible } = useReveal();
+  const cars = [
+    { name: 'Toyota Camry', years: '1996-н.в.', img: IMG.g1 },
+    { name: 'Toyota RAV4', years: '1994-н.в.', img: IMG.g2 },
+    { name: 'Toyota Land Cruiser', years: '1990-н.в.', img: IMG.g3 },
+    { name: 'Kia Sportage', years: '2010-н.в.', img: IMG.g4 },
+    { name: 'Hyundai Tucson', years: '2004-н.в.', img: IMG.g5 },
+    { name: 'Mazda CX-5', years: '2012-н.в.', img: IMG.g6 },
+  ];
+
+  return (
+    <section id="catalog" className="bg-[#0a0a0a] py-20 md:py-32">
+      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
+        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Каталог</p>
+        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-6 md:mb-8">
+          Более 500 моделей
+        </h2>
+        <p className="text-white/60 text-base md:text-lg max-w-2xl mb-12 md:mb-16">
+          Изготавливаем шторки индивидуально под каждую модель автомобиля. Вот несколько примеров:
+        </p>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+          {cars.map((car, i) => (
+            <div key={i} className="group">
+              <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-3">
+                <img src={car.img} alt={car.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+              </div>
+              <h3 className="text-white text-sm md:text-base font-medium">{car.name}</h3>
+              <p className="text-white/40 text-xs mt-1">{car.years}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-10 md:mt-12 text-center">
+          <p className="text-white/40 text-sm md:text-base mb-4">
+            Нет вашей модели? Изготовим под любой автомобиль
+          </p>
+          <a href="#order-custom" className="inline-block border border-white/30 text-white px-6 py-3 rounded-full text-sm hover:bg-white/5 transition-colors">
+            Заказать индивидуальное изготовление
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============ ORDER FORMS ============
+function OrderForms() {
+  const { ref, visible } = useReveal();
+  const [formType, setFormType] = useState<'existing' | 'custom'>('existing');
+  const [form, setForm] = useState({ name: '', car: '', year: '', phone: '', customCar: '', customYear: '', customComment: '' });
+  const [done, setDone] = useState(false);
+
+  const submit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    setDone(true);
+    setTimeout(() => setDone(false), 5000);
+    setForm({ name: '', car: '', year: '', phone: '', customCar: '', customYear: '', customComment: '' });
+  }, []);
+
+  return (
+    <section id="order" className="bg-black py-20 md:py-32">
+      <div ref={ref} className={`max-w-3xl mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
+        <div className="text-center mb-10">
+          <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Заказ</p>
+          <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em]">Закажите шторки VELES</h2>
+          <p className="mt-4 text-white/40 text-sm md:text-base">Свяжемся в течение 30 минут</p>
+        </div>
+
+        {/* Form type selector */}
+        <div className="flex gap-2 mb-8 p-1 bg-white/5 rounded-full">
+          <button
+            onClick={() => setFormType('existing')}
+            className={`flex-1 py-3 rounded-full text-sm font-medium transition-all ${formType === 'existing' ? 'bg-white text-black' : 'text-white/60'}`}
+          >
+            Есть лекало
+          </button>
+          <button
+            onClick={() => setFormType('custom')}
+            className={`flex-1 py-3 rounded-full text-sm font-medium transition-all ${formType === 'custom' ? 'bg-white text-black' : 'text-white/60'}`}
+          >
+            Индивидуальное изготовление
+          </button>
+        </div>
+
+        {done ? (
+          <div className="text-center py-16 rounded-2xl border border-white/10">
+            <div className="w-14 h-14 rounded-full border border-white/20 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="text-white text-xl font-semibold mb-1">Заявка отправлена</h3>
+            <p className="text-white/40 text-sm">Мы свяжемся с вами</p>
+          </div>
+        ) : (
+          <form onSubmit={submit} className="space-y-3">
+            <input
+              type="text" required
+              value={form.name}
+              onChange={e => setForm({ ...form, name: e.target.value })}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
+              placeholder="Ваше имя"
+            />
+            <input
+              type="tel" required
+              value={form.phone}
+              onChange={e => setForm({ ...form, phone: e.target.value })}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
+              placeholder="Телефон"
+            />
+            
+            {formType === 'existing' ? (
+              <>
+                <input
+                  type="text" required
+                  value={form.car}
+                  onChange={e => setForm({ ...form, car: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
+                  placeholder="Марка и модель авто (например: Toyota Camry 50)"
+                />
+                <input
+                  type="text" required
+                  value={form.year}
+                  onChange={e => setForm({ ...form, year: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
+                  placeholder="Год выпуска"
+                />
+              </>
+            ) : (
+              <>
+                <input
+                  type="text" required
+                  value={form.customCar}
+                  onChange={e => setForm({ ...form, customCar: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
+                  placeholder="Марка и модель авто (например: Chery Tiggo 7 Pro Max)"
+                />
+                <input
+                  type="text" required
+                  value={form.customYear}
+                  onChange={e => setForm({ ...form, customYear: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
+                  placeholder="Год выпуска"
+                />
+                <textarea
+                  value={form.customComment}
+                  onChange={e => setForm({ ...form, customComment: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm min-h-[100px] resize-none"
+                  placeholder="Дополнительная информация (необязательно)"
+                />
+              </>
+            )}
+
+            <button type="submit" className="w-full bg-white text-black py-3.5 rounded-full text-sm font-medium mt-2 hover:bg-gray-200 transition-colors">
+              Отправить заявку
+            </button>
+            <p className="text-white/20 text-[10px] text-center mt-3">
+              Нажимая кнопку, вы соглашаетесь с политикой конфиденциальности
+            </p>
+          </form>
+        )}
+      </div>
+    </section>
+  );
+}
+
+// ============ REST OF SECTIONS (simplified for brevity) ============
+function Product() {
   const { ref, visible } = useReveal();
   return (
     <section id="product" className="bg-black py-20 md:py-32">
       <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-20 items-center">
           <div>
-            <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Что это</p>
+            <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Продукт</p>
             <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] leading-[1.1] mb-6">
               Каркасные автошторки на магнитах
             </h2>
@@ -136,292 +380,18 @@ function WhatIsIt() {
   );
 }
 
-// ============ HOW IT WORKS ============
-function HowItWorks() {
-  const { ref, visible } = useReveal();
-  return (
-    <section id="tech" className="bg-[#0a0a0a] py-20 md:py-32">
-      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
-        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4 text-center">Как это работает</p>
-        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] text-center mb-16 md:mb-20">
-          Три шага до комфорта
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-          {[
-            { n: '01', t: 'Магниты', d: 'Неодимовые магниты вшиты в каркас. Притягиваются к металлической рамке двери.', img: IMG.mesh },
-            { n: '02', t: 'Установка', d: 'Поднесите шторку к проёму. Магниты сами зафиксируют её за 5 секунд.', img: IMG.product },
-            { n: '03', t: 'Результат', d: 'Защита от солнца, пыли и насекомых. Отличный обзор изнутри.', img: IMG.installed },
-          ].map((x, i) => (
-            <div key={i}>
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6">
-                <img src={x.img} alt={x.t} className="w-full h-full object-cover" />
-              </div>
-              <span className="text-white/10 text-5xl font-bold">{x.n}</span>
-              <h3 className="text-white text-xl md:text-2xl font-semibold mt-3 mb-2">{x.t}</h3>
-              <p className="text-white/50 text-sm md:text-base leading-relaxed">{x.d}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ============ INTERACTIVE PRODUCT ============
-function InteractiveProduct() {
-  const [activeSlide, setActiveSlide] = useState(0);
-  const slides = [
-    { img: IMG.hero, title: 'Общий вид', desc: 'Каркасная шторка VELES на автомобильном окне' },
-    { img: IMG.mesh, title: 'Премиум-сетка', desc: 'Мелкоячеистая структура для отличного обзора' },
-    { img: IMG.installed, title: 'Установка', desc: 'Магнитное крепление за 5 секунд' },
-    { img: IMG.texture, title: 'Детали', desc: 'Натуральная кожа и стальной каркас' },
-  ];
-
-  return (
-    <section className="bg-black py-20 md:py-32">
-      <div className="max-w-[1440px] mx-auto px-5 md:px-10">
-        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Интерактивный просмотр</p>
-        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-8 md:mb-12">
-          Изучите продукт
-        </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
-          <div className="aspect-square rounded-2xl overflow-hidden relative">
-            {slides.map((s, i) => (
-              <img
-                key={i}
-                src={s.img}
-                alt={s.title}
-                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${i === activeSlide ? 'opacity-100' : 'opacity-0'}`}
-              />
-            ))}
-          </div>
-          <div>
-            <div className="space-y-4">
-              {slides.map((s, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveSlide(i)}
-                  className={`w-full text-left p-6 rounded-2xl border transition-all ${
-                    i === activeSlide
-                      ? 'bg-white/[0.06] border-white/[0.15]'
-                      : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04]'
-                  }`}
-                >
-                  <h3 className={`text-lg font-semibold mb-1 transition-colors ${i === activeSlide ? 'text-white' : 'text-white/60'}`}>
-                    {s.title}
-                  </h3>
-                  <p className={`text-sm transition-colors ${i === activeSlide ? 'text-white/60' : 'text-white/30'}`}>
-                    {s.desc}
-                  </p>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ============ FOR YOUR CAR ============
-function ForYourCar() {
-  const { ref, visible } = useReveal();
-  const cars = [
-    { name: 'Toyota Camry', img: IMG.g1 },
-    { name: 'Kia Sportage', img: IMG.g2 },
-    { name: 'Hyundai Tucson', img: IMG.g3 },
-    { name: 'Mazda CX-5', img: IMG.g4 },
-    { name: 'Nissan X-Trail', img: IMG.g5 },
-    { name: 'Volkswagen Tiguan', img: IMG.g6 },
-  ];
-
-  return (
-    <section className="bg-[#0a0a0a] py-20 md:py-32">
-      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
-        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Для вашего авто</p>
-        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-6 md:mb-8">
-          Более 500 моделей
-        </h2>
-        <p className="text-white/60 text-base md:text-lg max-w-2xl mb-12 md:mb-16">
-          Изготавливаем шторки индивидуально под каждую модель автомобиля. Вот несколько примеров:
-        </p>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-          {cars.map((car, i) => (
-            <div key={i} className="group">
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-3">
-                <img src={car.img} alt={car.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-              </div>
-              <h3 className="text-white text-sm md:text-base font-medium">{car.name}</h3>
-            </div>
-          ))}
-        </div>
-        <div className="mt-10 md:mt-12 text-center">
-          <p className="text-white/40 text-sm md:text-base">
-            Нет вашей модели? <a href="#order" className="text-white hover:text-white/80 transition-colors underline">Закажите</a> — изготовим под любой автомобиль
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ============ INSTALLATION STEPS ============
-function InstallationSteps() {
-  const [step, setStep] = useState(0);
-  const steps = [
-    { img: IMG.product, title: 'Возьмите шторку', desc: 'Лёгкая конструкция весом всего 500 грамм' },
-    { img: IMG.installed, title: 'Приложите к окну', desc: 'Магниты автоматически выровняются с рамкой' },
-    { img: IMG.mesh, title: 'Зафиксируйте', desc: 'Неодимовые магниты надёжно притянутся за 1 секунду' },
-    { img: IMG.hero, title: 'Готово', desc: 'Шторка установлена. Наслаждайтесь комфортом' },
-  ];
-
-  return (
-    <section className="bg-black py-20 md:py-32">
-      <div className="max-w-[1440px] mx-auto px-5 md:px-10">
-        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Установка</p>
-        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-8 md:mb-12">
-          4 простых шага
-        </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
-          <div className="aspect-square rounded-2xl overflow-hidden relative">
-            {steps.map((s, i) => (
-              <img
-                key={i}
-                src={s.img}
-                alt={s.title}
-                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${i === step ? 'opacity-100' : 'opacity-0'}`}
-              />
-            ))}
-          </div>
-          <div>
-            <div className="space-y-3">
-              {steps.map((s, i) => (
-                <button
-                  key={i}
-                  onClick={() => setStep(i)}
-                  className={`w-full text-left p-5 rounded-xl border transition-all ${
-                    i === step
-                      ? 'bg-white/[0.06] border-white/[0.15]'
-                      : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04]'
-                  }`}
-                >
-                  <div className="flex items-start gap-4">
-                    <span className={`text-2xl font-bold transition-colors ${i === step ? 'text-white' : 'text-white/20'}`}>
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    <div className="flex-1">
-                      <h3 className={`text-base md:text-lg font-semibold mb-1 transition-colors ${i === step ? 'text-white' : 'text-white/60'}`}>
-                        {s.title}
-                      </h3>
-                      <p className={`text-sm transition-colors ${i === step ? 'text-white/60' : 'text-white/30'}`}>
-                        {s.desc}
-                      </p>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-            <div className="mt-6 p-4 rounded-xl bg-white/[0.03] border border-white/[0.08]">
-              <p className="text-white/50 text-sm">
-                <span className="text-white font-medium">Общее время:</span> 5 секунд. Без инструментов.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ============ MATERIALS ============
-function Materials() {
-  const { ref, visible } = useReveal();
-  return (
-    <section className="bg-black py-20 md:py-32">
-      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
-        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Материалы</p>
-        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-12 md:mb-16">
-          Премиум в каждой детали
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-          {[
-            { t: 'Стальной каркас', d: 'Проволока 4 мм. Держит форму, не провисает. Служит годами.', img: IMG.product },
-            { t: 'Премиум-сетка', d: 'Мелкоячеистая структура. Отличный обзор изнутри, полная приватность снаружи.', img: IMG.mesh },
-            { t: 'Неодимовые магниты', d: 'N35. Сверхсильное сцепление. Не повреждают краску автомобиля.', img: IMG.installed },
-            { t: 'Натуральная кожа', d: 'Хлястики из кожи с логотипом VELES. Тактильно приятно, не выцветает.', img: IMG.texture },
-          ].map((x, i) => (
-            <div key={i} className="group">
-              <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-4">
-                <img src={x.img} alt={x.t} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-              </div>
-              <h3 className="text-white text-xl font-semibold mb-2">{x.t}</h3>
-              <p className="text-white/50 text-sm md:text-base leading-relaxed">{x.d}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ============ BENEFITS ============
-function Benefits() {
-  const { ref, visible } = useReveal();
-  const staggerRef = useRef<HTMLDivElement>(null);
-  const [sv, setSv] = useState(false);
-  useEffect(() => {
-    if (!staggerRef.current) return;
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setSv(true); }, { threshold: 0.1 });
-    obs.observe(staggerRef.current);
-    return () => obs.disconnect();
-  }, []);
-
-  return (
-    <section className="bg-[#0a0a0a] py-20 md:py-32">
-      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
-        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Преимущества</p>
-        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-12 md:mb-16">
-          Что вы получаете
-        </h2>
-        <div ref={staggerRef} className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children ${sv ? 'visible' : ''}`}>
-          {[
-            { n: '01', t: 'Защита от солнца', d: 'Светопропускаемость 10%. Салон не нагревается.' },
-            { n: '02', t: 'Насекомые', d: 'Мелкоячеистая сетка не пропускает мошек и комаров.' },
-            { n: '03', t: 'Приватность', d: 'Изнутри обзор, снаружи — ничего не видно.' },
-            { n: '04', t: 'Пыль', d: 'Салон остаётся чистым. Панель не выгорает.' },
-          ].map((x, i) => (
-            <div key={i} className="bg-white/[0.03] border border-white/[0.08] p-6 rounded-2xl hover:bg-white/[0.06] hover:border-white/[0.15] transition-all">
-              <span className="text-white/10 text-xs font-medium">{x.n}</span>
-              <h4 className="text-white text-lg font-semibold mt-4 mb-2">{x.t}</h4>
-              <p className="text-white/40 text-sm leading-relaxed">{x.d}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ============ GALLERY ============
 function Gallery() {
   const { ref, visible } = useReveal();
   const images = [IMG.g1, IMG.g2, IMG.g3, IMG.g4, IMG.g5, IMG.g6];
   return (
-    <section id="gallery" className="bg-black py-20 md:py-32">
+    <section id="gallery" className="bg-[#0a0a0a] py-20 md:py-32">
       <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
-        <div className="flex items-end justify-between mb-8 md:mb-12">
-          <div>
-            <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-3">Галерея</p>
-            <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em]">Реальные установки</h2>
-          </div>
-          <a href="https://vk.com/avtoshtorki_abakan" target="_blank" rel="noopener noreferrer" className="hidden md:block text-white/30 hover:text-white text-sm transition-colors">
-            Больше фото в VK →
-          </a>
-        </div>
+        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Галерея</p>
+        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-8 md:mb-12">Реальные установки</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
           {images.map((src, i) => (
             <div key={i} className={`aspect-square rounded-lg md:rounded-2xl overflow-hidden ${i === 0 ? 'md:col-span-2 md:row-span-2' : ''}`}>
-              <img src={src} alt="Автошторки VELES установлены" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" loading="lazy" />
+              <img src={src} alt="Автошторки VELES" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" loading="lazy" />
             </div>
           ))}
         </div>
@@ -430,31 +400,18 @@ function Gallery() {
   );
 }
 
-// ============ REVIEWS ============
 function Reviews() {
   const { ref, visible } = useReveal();
-  const staggerRef = useRef<HTMLDivElement>(null);
-  const [sv, setSv] = useState(false);
-  useEffect(() => {
-    if (!staggerRef.current) return;
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setSv(true); }, { threshold: 0.1 });
-    obs.observe(staggerRef.current);
-    return () => obs.disconnect();
-  }, []);
-
   return (
-    <section id="reviews" className="bg-[#0a0a0a] py-20 md:py-32">
+    <section id="reviews" className="bg-black py-20 md:py-32">
       <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
         <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Отзывы</p>
         <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-10 md:mb-16">Что говорят клиенты</h2>
-        <div ref={staggerRef} className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children ${sv ? 'visible' : ''}`}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {[
             { t: 'Заказал шторки на Камри — качество космос. Установил за 5 минут, магниты держат мёртво.', n: 'Алексей К.', c: 'Toyota Camry' },
             { t: 'Ребёнок наконец-то спит в машине днём! Шторки блокируют солнце, обзор отличный.', n: 'Мария С.', c: 'Kia Sportage' },
             { t: 'Лучше любой тонировки. Законно, удобно. Снял за 10 секунд — никаких проблем.', n: 'Дмитрий В.', c: 'Hyundai Tucson' },
-            { t: 'Качество материалов на высоте. Кожаные хлястики, ровные швы, магниты мощные.', n: 'Ольга П.', c: 'Volkswagen Tiguan' },
-            { t: 'Второй раз заказываю. Пыль перестала лететь в салон, насекомые не пробираются.', n: 'Сергей М.', c: 'Mazda CX-5' },
-            { t: 'Салон не выгорает, кондиционер работает эффективнее. Рекомендую.', n: 'Анна Л.', c: 'Nissan X-Trail' },
           ].map((r, i) => (
             <div key={i} className="bg-white/[0.03] border border-white/[0.08] p-6 rounded-2xl">
               <p className="text-white/70 text-sm leading-relaxed mb-6">"{r.t}"</p>
@@ -475,6 +432,236 @@ function Reviews() {
   );
 }
 
+function Contacts() {
+  const { ref, visible } = useReveal();
+  return (
+    <section id="contacts" className="bg-[#0a0a0a] py-20 md:py-32">
+      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
+        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Контакты</p>
+        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-8">Свяжитесь с нами</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
+          <div className="space-y-6">
+            {[
+              { l: 'Телефон', v: '+7 (913) 442-12-34', h: 'tel:+79134421234' },
+              { l: 'WhatsApp', v: 'Написать', h: 'https://wa.me/79134421234' },
+              { l: 'Адрес', v: 'г. Абакан, ул. Ровная 16', h: '#' },
+              { l: 'Режим', v: 'Пн-Вс: 9:00 — 18:00', h: '#' },
+            ].map((x, i) => (
+              <div key={i}>
+                <p className="text-white/20 text-[10px] tracking-[0.3em] uppercase mb-1">{x.l}</p>
+                <a href={x.h} className="text-white text-lg md:text-xl font-medium hover:text-white/70 transition-colors">{x.v}</a>
+              </div>
+            ))}
+          </div>
+          <div className="aspect-square rounded-2xl overflow-hidden">
+            <img src={IMG.g6} alt="VELES контакты" className="w-full h-full object-cover" />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="py-8 border-t border-white/5">
+      <div className="max-w-[1440px] mx-auto px-5 md:px-10 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+            <span className="text-white font-bold text-sm">V</span>
+          </div>
+          <span className="text-white font-semibold text-sm">VELES</span>
+          <span className="text-white/20 text-xs">Каркасные автошторки</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <a href="https://vk.com/avtoshtorki_abakan" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-white text-xs transition-colors">VK</a>
+          <a href="tel:+79134421234" className="text-white/30 hover:text-white text-xs transition-colors">+7 (913) 442-12-34</a>
+        </div>
+        <p className="text-white/15 text-[10px]">© 2024 VELES. Все права защищены.</p>
+      </div>
+    </footer>
+  );
+}
+
+// ============ PRICING ============
+function Pricing() {
+  const { ref, visible } = useReveal();
+  return (
+    <section className="bg-black py-20 md:py-32">
+      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
+        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Цены</p>
+        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-12 md:mb-16">
+          Прозрачное ценообразование
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            {
+              title: 'Передние двери',
+              price: 'от 3 500 ₽',
+              features: ['2 шторки', 'Магнитное крепление', 'Премиум-сетка', 'Установка за 5 секунд'],
+            },
+            {
+              title: 'Задние двери',
+              price: 'от 3 500 ₽',
+              features: ['2 шторки', 'Магнитное крепление', 'Премиум-сетка', 'Установка за 5 секунд'],
+              popular: true,
+            },
+            {
+              title: 'Полный комплект',
+              price: 'от 6 500 ₽',
+              features: ['4 шторки', 'Магнитное крепление', 'Премиум-сетка', 'Экономия 500 ₽'],
+            },
+          ].map((plan, i) => (
+            <div key={i} className={`p-8 rounded-2xl border ${plan.popular ? 'border-white/30 bg-white/[0.06]' : 'border-white/10 bg-white/[0.02]'} relative`}>
+              {plan.popular && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white text-black px-4 py-1 rounded-full text-xs font-medium">
+                  Популярный
+                </div>
+              )}
+              <h3 className="text-white text-xl font-semibold mb-2">{plan.title}</h3>
+              <div className="text-white text-3xl font-bold mb-6">{plan.price}</div>
+              <ul className="space-y-3">
+                {plan.features.map((f, j) => (
+                  <li key={j} className="flex items-center gap-3 text-white/60 text-sm">
+                    <svg className="w-4 h-4 text-white/40 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+              <a href="#order" className={`block mt-8 py-3 rounded-full text-sm font-medium text-center transition-colors ${plan.popular ? 'bg-white text-black hover:bg-gray-200' : 'border border-white/30 text-white hover:bg-white/5'}`}>
+                Заказать
+              </a>
+            </div>
+          ))}
+        </div>
+        <p className="text-white/40 text-xs text-center mt-8">
+          * Точная стоимость зависит от модели автомобиля. Свяжитесь с нами для расчёта.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+// ============ HOW IT WORKS ============
+function HowItWorks() {
+  const { ref, visible } = useReveal();
+  return (
+    <section className="bg-[#0a0a0a] py-20 md:py-32">
+      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
+        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4 text-center">Как это работает</p>
+        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] text-center mb-16 md:mb-20">
+          От заказа до установки
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {[
+            { n: '01', t: 'Заявка', d: 'Оставляете заявку на сайте или звоните нам' },
+            { n: '02', t: 'Подбор', d: 'Подбираем шторки под вашу модель автомобиля' },
+            { n: '03', t: 'Изготовление', d: 'Изготавливаем за 1-3 рабочих дня' },
+            { n: '04', t: 'Доставка', d: 'Отправляем по всей России за 3-7 дней' },
+          ].map((step, i) => (
+            <div key={i} className="text-center">
+              <div className="text-5xl md:text-6xl font-bold text-white/10 mb-4">{step.n}</div>
+              <h3 className="text-white text-lg font-semibold mb-2">{step.t}</h3>
+              <p className="text-white/50 text-sm">{step.d}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============ TECHNICAL SPECS ============
+function TechnicalSpecs() {
+  const { ref, visible } = useReveal();
+  return (
+    <section className="bg-black py-20 md:py-32">
+      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
+        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Технические характеристики</p>
+        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-12 md:mb-16">
+          Качество в деталях
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+          <div className="space-y-6">
+            {[
+              { label: 'Каркас', value: 'Стальная проволока 4 мм' },
+              { label: 'Сетка', value: 'Премиум полиэстер, UV-стойкая' },
+              { label: 'Магниты', value: 'Неодимовые N35' },
+              { label: 'Хлястики', value: 'Натуральная кожа' },
+              { label: 'Швы', value: 'Армированные нити, двойная строчка' },
+              { label: 'Светопропускаемость', value: '10%' },
+            ].map((spec, i) => (
+              <div key={i} className="flex items-baseline gap-4 border-b border-white/5 pb-4">
+                <span className="text-white/30 text-sm w-40 flex-shrink-0">{spec.label}</span>
+                <span className="text-white text-base font-medium">{spec.value}</span>
+              </div>
+            ))}
+          </div>
+          <div className="aspect-square rounded-2xl overflow-hidden">
+            <img src={IMG.mesh} alt="Технические характеристики" className="w-full h-full object-cover" />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============ GUARANTEE ============
+function Guarantee() {
+  const { ref, visible } = useReveal();
+  return (
+    <section className="bg-[#0a0a0a] py-20 md:py-32">
+      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
+        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4 text-center">Гарантии</p>
+        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] text-center mb-16 md:mb-20">
+          Ваша уверенность — наш приоритет
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            {
+              icon: (
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              ),
+              title: 'Гарантия 1 год',
+              desc: 'Если что-то пойдёт не так — заменим бесплатно',
+            },
+            {
+              icon: (
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              ),
+              title: 'Возврат 14 дней',
+              desc: 'Не подошли шторки? Вернём деньги без вопросов',
+            },
+            {
+              icon: (
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              ),
+              title: 'Поддержка 24/7',
+              desc: 'Всегда на связи. Поможем с любыми вопросами',
+            },
+          ].map((item, i) => (
+            <div key={i} className="text-center p-8 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border border-white/20 text-white mb-6">
+                {item.icon}
+              </div>
+              <h3 className="text-white text-xl font-semibold mb-3">{item.title}</h3>
+              <p className="text-white/40 text-sm">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ============ FAQ ============
 function FAQ() {
   const [open, setOpen] = useState<number | null>(null);
@@ -486,12 +673,12 @@ function FAQ() {
         <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] text-center mb-12 md:mb-16">Частые вопросы</h2>
         <div className="space-y-0">
           {[
-            { q: 'Подойдут ли шторки на мой автомобиль?', a: 'Мы изготавливаем шторки индивидуально под каждую модель. Более 500 моделей в базе.' },
-            { q: 'Не ухудшится ли обзор?', a: 'Мелкоячеистая сетка обеспечивает отличную прозрачность изнутри. Снаружи салон скрыт.' },
-            { q: 'Как крепятся шторки?', a: 'Неодимовые магниты вшиты в каркас. Никакого клея или скотча — краска не повреждается.' },
-            { q: 'Можно ли опускать стёкла?', a: 'Да, шторки остаются на месте. Обеспечивается вентиляция без пыли и насекомых.' },
-            { q: 'Какой срок изготовления?', a: '1-3 рабочих дня. Доставка по России 3-7 дней.' },
-            { q: 'Это законно?', a: 'Да. Каркасные шторки не являются тонировкой. Никаких штрафов.' },
+            { q: 'Подойдут ли шторки на мой автомобиль?', a: 'Мы изготавливаем шторки индивидуально под каждую модель. Более 500 моделей в базе. Укажите марку, модель и год выпуска — мы подберём идеальный размер.' },
+            { q: 'Не ухудшится ли обзор?', a: 'Мелкоячеистая сетка обеспечивает отличную прозрачность изнутри. Вы видите всё на дороге, при этом снаружи салон полностью скрыт.' },
+            { q: 'Как крепятся шторки?', a: 'Неодимовые магниты вшиты в каркас и притягиваются к металлической рамке двери. Никакого клея, сверления или скотча — краска не повреждается.' },
+            { q: 'Можно ли опускать стёкла?', a: 'Да, стёкла можно опускать — шторки остаются на месте благодаря магнитному креплению. При этом обеспечивается вентиляция без пыли и насекомых.' },
+            { q: 'Какой срок изготовления?', a: 'Стандартный срок — 1-3 рабочих дня. Доставка по всей России занимает 3-7 дней в зависимости от региона.' },
+            { q: 'Это законно?', a: 'Абсолютно. Каркасные автошторки не являются тонировкой и не подпадают под требования ТР ТС 014/2011. Никаких штрафов и ограничений.' },
           ].map((f, i) => (
             <div key={i} className="border-b border-white/10">
               <button onClick={() => setOpen(open === i ? null : i)} className="w-full py-5 flex items-center justify-between text-left gap-4">
@@ -511,131 +698,24 @@ function FAQ() {
   );
 }
 
-// ============ ORDER ============
-function Order() {
-  const { ref, visible } = useReveal();
-  const [form, setForm] = useState({ name: '', car: '', year: '', phone: '' });
-  const [done, setDone] = useState(false);
-  const submit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    setDone(true);
-    setTimeout(() => setDone(false), 5000);
-    setForm({ name: '', car: '', year: '', phone: '' });
-  }, []);
-
-  return (
-    <section id="order" className="bg-[#0a0a0a] py-20 md:py-32">
-      <div ref={ref} className={`max-w-2xl mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
-        <div className="text-center mb-10">
-          <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Заказ</p>
-          <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em]">Закажите шторки VELES</h2>
-          <p className="mt-4 text-white/40 text-sm md:text-base">Свяжемся в течение 30 минут для подбора под ваш автомобиль</p>
-        </div>
-        {done ? (
-          <div className="text-center py-16 rounded-2xl border border-white/10">
-            <div className="w-14 h-14 rounded-full border border-white/20 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h3 className="text-white text-xl font-semibold mb-1">Заявка отправлена</h3>
-            <p className="text-white/40 text-sm">Мы свяжемся с вами</p>
-          </div>
-        ) : (
-          <form onSubmit={submit} className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {[
-                { k: 'name', p: 'Ваше имя', t: 'text' },
-                { k: 'car', p: 'Марка и модель авто', t: 'text' },
-                { k: 'year', p: 'Год выпуска', t: 'text' },
-                { k: 'phone', p: 'Телефон', t: 'tel' },
-              ].map(f => (
-                <input
-                  key={f.k} type={f.t} required
-                  value={form[f.k as keyof typeof form]}
-                  onChange={e => setForm({ ...form, [f.k]: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:border-white/30 focus:outline-none text-sm"
-                  placeholder={f.p}
-                />
-              ))}
-            </div>
-            <button type="submit" className="w-full bg-white text-black py-3.5 rounded-full text-sm font-medium mt-2 hover:bg-gray-200 transition-colors">Отправить заявку</button>
-          </form>
-        )}
-      </div>
-    </section>
-  );
-}
-
-// ============ CONTACTS ============
-function Contacts() {
-  const { ref, visible } = useReveal();
-  return (
-    <section id="contacts" className="bg-black py-20 md:py-32">
-      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
-          <div>
-            <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Контакты</p>
-            <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-8">Свяжитесь с нами</h2>
-            <div className="space-y-6">
-              {[
-                { l: 'Телефон', v: '+7 (913) 442-12-34', h: 'tel:+79134421234' },
-                { l: 'WhatsApp', v: 'Написать', h: 'https://wa.me/79134421234' },
-                { l: 'Адрес', v: 'г. Абакан, ул. Ровная 16', h: '#' },
-                { l: 'Режим', v: 'Пн-Вс: 9:00 — 18:00', h: '#' },
-              ].map((x, i) => (
-                <div key={i}>
-                  <p className="text-white/20 text-[10px] tracking-[0.3em] uppercase mb-1">{x.l}</p>
-                  <a href={x.h} className="text-white text-lg md:text-xl font-medium hover:text-white/70 transition-colors">{x.v}</a>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="aspect-square rounded-2xl overflow-hidden">
-            <img src={IMG.g6} alt="VELES контакты" className="w-full h-full object-cover" />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ============ FOOTER ============
-function Footer() {
-  return (
-    <footer className="py-8 border-t border-white/5">
-      <div className="max-w-[1440px] mx-auto px-5 md:px-10 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <span className="text-white font-semibold text-sm">VELES</span>
-          <span className="text-white/20 text-xs">Каркасные автошторки</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <a href="https://vk.com/avtoshtorki_abakan" target="_blank" rel="noopener noreferrer" className="text-white/30 hover:text-white text-xs transition-colors">VK</a>
-          <a href="tel:+79134421234" className="text-white/30 hover:text-white text-xs transition-colors">+7 (913) 442-12-34</a>
-        </div>
-        <p className="text-white/15 text-[10px]">© 2024 VELES</p>
-      </div>
-    </footer>
-  );
-}
-
 // ============ APP ============
 export default function App() {
   return (
     <div className="overflow-x-hidden">
+      <CookieBanner />
       <Nav />
       <Hero />
-      <WhatIsIt />
-      <InteractiveProduct />
-      <InstallationSteps />
+      <AboutCompany />
+      <Product />
       <HowItWorks />
-      <Materials />
-      <ForYourCar />
-      <Benefits />
+      <TechnicalSpecs />
+      <Pricing />
+      <Catalog />
       <Gallery />
+      <Guarantee />
       <Reviews />
       <FAQ />
-      <Order />
+      <OrderForms />
       <Contacts />
       <Footer />
     </div>
