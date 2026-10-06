@@ -29,37 +29,13 @@ function useCountUp(end: number, start = false) {
   return v;
 }
 
-function useWordReveal() {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!ref.current) return;
-    const words = ref.current.querySelectorAll('.word');
-    const onScroll = () => {
-      if (!ref.current) return;
-      const r = ref.current.getBoundingClientRect();
-      const wh = window.innerHeight;
-      const p = Math.max(0, Math.min(1, (wh * 0.7 - r.top) / (wh * 0.5)));
-      const n = Math.floor(p * words.length);
-      words.forEach((w, i) => w.classList.toggle('active', i < n));
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-  return ref;
-}
-
 // ============ IMAGES ============
 const IMG = {
-  // AI-generated cinematic images
-  interior: 'https://image.qwenlm.ai/generated-images/d0e0b6e4-c499-44be-abc5-64bb90d440c0/_result.png',
+  hero: 'https://image.qwenlm.ai/generated-images/61714e6e-1d6b-48cb-aba7-de7e6f2162b7/_result.png',
+  installed: 'https://image.qwenlm.ai/generated-images/a051b243-da3a-45ca-85a4-7be441a4a002/_result.png',
   mesh: 'https://image.qwenlm.ai/generated-images/3d2aa903-eae8-429f-9a47-9e62a1945c89/_result.png',
-  road: 'https://image.qwenlm.ai/generated-images/2cb7f130-60dd-49af-9071-0ac69e7bc247/_result.png',
   product: 'https://image.qwenlm.ai/generated-images/c75109ad-4c99-461e-a19b-783babc61d80/_result.png',
-  family: 'https://image.qwenlm.ai/generated-images/8c7c6ed3-a831-42a2-a162-f005e3e4151a/_result.png',
   texture: 'https://image.qwenlm.ai/generated-images/bea8753d-292b-48d5-a58f-b0be8e370dd2/_result.png',
-  showroom: 'https://image.qwenlm.ai/generated-images/db83c049-01b8-4739-bb50-595c7812c193/_result.png',
-  // Real VK photos
   g1: 'https://sun9-7.vkuserphoto.ru/s/v1/ig2/eispSnwz9X2hrEO3Pbdqn_Lj1gRSMOLXQm6opejaSun3IXeK0grWUgfckGEsfniYsJA59BFxn9Yw7deQ5WrXL1ZA.jpg?quality=95&as=32x16,48x24,72x36,108x55,160x81,240x122,360x183,480x243,540x274,640x324,720x365,1080x548,1280x649,1440x730,2560x1298&from=bu&u=abw07EHPYE9OcjffAY1JjvMHdN9TZUq-ZTNlo4550-E&cs=2560x0',
   g2: 'https://sun9-70.vkuserphoto.ru/s/v1/ig2/NAOdZchuN80mZQJ58HqHteSqfv4BMoMKkaDwWTb3b4zEoseNtZ8vDxEnkra4qfaLsqa5h5Sib5VsdR0VEpb4kCjB.jpg?quality=95&as=32x14,48x22,72x32,108x49,160x72,240x108,360x162,480x216,540x243,640x288,720x324,1080x486,1280x576,1440x648,2560x1152&from=bu&u=cxMX70Bym5-VTuqISqk7KIUpAFq0BR3UIYoiwCL4o_I&cs=2560x0',
   g3: 'https://sun9-65.vkuserphoto.ru/s/v1/ig2/rdaWAna1J2iGcLmUtOhnwo4d4G5y-UnfQQF9a89T_OhGLWzstD312N8xkPsLUb5fcfyIsBv296ozMWRoYHF-xyJE.jpg?quality=95&as=32x24,48x36,72x54,108x81,160x120,240x180,360x270,480x360,540x405,640x480,720x540,1080x810,1280x960,1440x1080,2560x1920&from=bu&u=n32Y1_-jZQshbq-GvSEMCM76QghSD6BmuLH2GknIy3M&cs=2560x0',
@@ -91,7 +67,7 @@ function Nav() {
             <a key={h} href={h} className="text-[13px] text-white/70 hover:text-white transition-colors">{l}</a>
           ))}
         </div>
-        <a href="#order" className="hidden md:block btn-primary px-5 py-2 rounded-full text-[13px]">Заказать</a>
+        <a href="#order" className="hidden md:block bg-white text-black px-5 py-2 rounded-full text-[13px] font-medium hover:bg-gray-200 transition-colors">Заказать</a>
         <button onClick={() => setOpen(!open)} className="md:hidden w-10 h-10 flex flex-col items-center justify-center gap-1.5" aria-label="Меню">
           <span className={`w-5 h-[1.5px] bg-white transition-all ${open ? 'rotate-45 translate-y-[4px]' : ''}`} />
           <span className={`w-5 h-[1.5px] bg-white transition-all ${open ? 'opacity-0' : ''}`} />
@@ -112,139 +88,78 @@ function Nav() {
 // ============ HERO ============
 function Hero() {
   return (
-    <section id="hero" className="relative h-[100svh] min-h-[600px] flex items-end overflow-hidden">
-      <img src={IMG.road} alt="" className="absolute inset-0 w-full h-full object-cover" />
-      <div className="absolute inset-0 overlay-gradient" />
-      <div className="relative z-10 max-w-[1440px] mx-auto px-5 md:px-10 pb-20 md:pb-32 w-full">
-        <p className="text-white/60 text-xs md:text-sm tracking-[0.3em] uppercase mb-5 animate-fade-in-up delay-300">Каркасные автошторки</p>
-        <h1 className="text-white text-[clamp(3rem,9vw,8rem)] font-bold tracking-[-0.04em] leading-[0.9] animate-fade-in-up delay-500">
-          Комфорт.<br />Без компромиссов.
+    <section id="hero" className="relative h-[100svh] min-h-[600px] flex items-center justify-center overflow-hidden bg-black">
+      <img src={IMG.hero} alt="Каркасные автошторки VELES" className="absolute inset-0 w-full h-full object-cover opacity-60" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/80" />
+      <div className="relative z-10 text-center px-5 md:px-10 max-w-4xl">
+        <p className="text-white/60 text-xs md:text-sm tracking-[0.3em] uppercase mb-6">Каркасные автошторки</p>
+        <h1 className="text-white text-4xl md:text-6xl lg:text-7xl font-bold tracking-[-0.03em] leading-[1.05] mb-6">
+          VELES
         </h1>
-        <p className="mt-6 md:mt-8 text-white/60 text-base md:text-xl max-w-lg leading-relaxed font-light animate-fade-in-up delay-700">
-          Защита от солнца, пыли и насекомых. Магнитное крепление. Установка за 5 секунд.
+        <p className="text-white/70 text-base md:text-xl max-w-2xl mx-auto leading-relaxed mb-8">
+          Премиальные шторки на магнитном креплении. Защита от солнца, пыли и насекомых. Установка за 5 секунд.
         </p>
-        <div className="mt-8 md:mt-12 flex flex-col sm:flex-row gap-3 animate-fade-in-up delay-1000">
-          <a href="#order" className="btn-primary px-8 py-3.5 rounded-full text-sm text-center">Заказать</a>
-          <a href="#product" className="btn-secondary px-8 py-3.5 rounded-full text-sm text-center">Подробнее</a>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <a href="#order" className="bg-white text-black px-8 py-3.5 rounded-full text-sm font-medium hover:bg-gray-200 transition-colors">Заказать шторки</a>
+          <a href="#product" className="border border-white/30 text-white px-8 py-3.5 rounded-full text-sm font-medium hover:bg-white/5 transition-colors">Подробнее</a>
         </div>
       </div>
     </section>
   );
 }
 
-// ============ MANIFESTO ============
-function Manifesto() {
-  const ref = useWordReveal();
-  const text = "Каждый день за рулём — это борьба. Солнце слепит. Салон раскаляется. Насекомые летят в лицо. Дети капризничают. Мы решили это изменить. VELES — это новый стандарт комфорта в автомобиле. Создано для тех, кто понимает: дорога должна приносить удовольствие, а не стресс.";
-  const words = text.split(' ');
-  return (
-    <section className="relative min-h-[100svh] flex items-center bg-black py-20 md:py-32">
-      <div ref={ref} className="max-w-[1200px] mx-auto px-5 md:px-10 word-reveal">
-        <p className="text-white/20 text-xs tracking-[0.3em] uppercase mb-8">Философия</p>
-        <p className="text-white text-2xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] leading-[1.15]">
-          {words.map((w, i) => <span key={i} className="word">{w}</span>)}
-        </p>
-      </div>
-    </section>
-  );
-}
-
-// ============ FULL-WIDTH CINEMATIC ============
-function Cinematic({ src, children }: { src: string; children?: React.ReactNode }) {
+// ============ WHAT IS IT ============
+function WhatIsIt() {
   const { ref, visible } = useReveal();
   return (
-    <section ref={ref} className="relative h-[80vh] md:h-[100svh] overflow-hidden">
-      <img src={src} alt="" className={`w-full h-full object-cover transition-transform duration-[2s] ${visible ? 'scale-100' : 'scale-110'}`} />
-      <div className="absolute inset-0 overlay-gradient" />
-      {children && <div className="absolute inset-0 flex items-end">{children}</div>}
+    <section id="product" className="bg-black py-20 md:py-32">
+      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-20 items-center">
+          <div>
+            <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Что это</p>
+            <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] leading-[1.1] mb-6">
+              Каркасные автошторки на магнитах
+            </h2>
+            <p className="text-white/60 text-base md:text-lg leading-relaxed mb-4">
+              Жёсткий стальной каркас с натянутой премиум-сеткой. Крепится к оконному проёму автомобиля на неодимовых магнитах.
+            </p>
+            <p className="text-white/60 text-base md:text-lg leading-relaxed">
+              Не тонировка. Не плёнка. Съёмный аксессуар, который устанавливается за 5 секунд без инструментов.
+            </p>
+          </div>
+          <div className="aspect-square rounded-2xl overflow-hidden">
+            <img src={IMG.installed} alt="Автошторка VELES установлена на авто" className="w-full h-full object-cover" />
+          </div>
+        </div>
+      </div>
     </section>
   );
 }
 
-// ============ PRODUCT STICKY ============
-function Product() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-
-  const slides = [
-    { img: IMG.interior, title: 'Идеальная посадка', text: 'Каждая шторка создаётся под вашу модель автомобиля — с точностью до миллиметра.' },
-    { img: IMG.mesh, title: 'Премиум-сетка', text: 'Мелкоячеистая структура. Отличный обзор изнутри. Полная приватность снаружи.' },
-    { img: IMG.texture, title: 'Натуральная кожа', text: 'Хлястики из кожи с логотипом VELES. Тактильно приятно. Не выцветает.' },
-    { img: IMG.product, title: 'Стальной каркас', text: 'Проволока 4 мм. Армированные нити. Двойная строчка. Качество на годы.' },
-  ];
-
-  if (isMobile) {
-    return (
-      <section id="product" className="bg-black py-20">
-        <div className="max-w-[1440px] mx-auto px-5 md:px-10">
-          <p className="text-white/20 text-xs tracking-[0.3em] uppercase mb-4">Продукт</p>
-          <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.03em] mb-12">Совершенство в деталях.</h2>
-          <div className="space-y-12">
-            {slides.map((s, i) => (
-              <div key={i}>
-                <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-4">
-                  <img src={s.img} alt={s.title} className="w-full h-full object-cover" loading="lazy" />
-                </div>
-                <p className="text-white/30 text-xs tracking-[0.2em] uppercase mb-2">{String(i + 1).padStart(2, '0')}</p>
-                <h3 className="text-white text-xl md:text-2xl font-semibold mb-2">{s.title}</h3>
-                <p className="text-white/50 text-sm md:text-base leading-relaxed">{s.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  return <StickyProduct slides={slides} />;
-}
-
-function StickyProduct({ slides }: { slides: { img: string; title: string; text: string }[] }) {
-  const [idx, setIdx] = useState(0);
-  const wrapRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const onScroll = () => {
-      if (!wrapRef.current) return;
-      const r = wrapRef.current.getBoundingClientRect();
-      const h = wrapRef.current.offsetHeight;
-      const wh = window.innerHeight;
-      const p = Math.max(0, Math.min(1, -r.top / (h - wh)));
-      setIdx(Math.min(slides.length - 1, Math.floor(p * slides.length)));
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [slides.length]);
-
+// ============ HOW IT WORKS ============
+function HowItWorks() {
+  const { ref, visible } = useReveal();
   return (
-    <section id="product" ref={wrapRef} style={{ height: `${slides.length * 100}vh` }}>
-      <div className="sticky top-0 h-[100svh] overflow-hidden">
-        {slides.map((s, i) => (
-          <div key={i} className={`absolute inset-0 transition-opacity duration-1000 ${i === idx ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-            <img src={s.img} alt="" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent" />
-          </div>
-        ))}
-        <div className="relative z-10 h-full flex items-center">
-          <div className="max-w-[1440px] mx-auto px-5 md:px-10 w-full">
-            <div className="max-w-xl">
-              <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Продукт — {String(idx + 1).padStart(2, '0')}</p>
-              <h3 className="text-white text-4xl md:text-6xl lg:text-7xl font-bold tracking-[-0.03em] leading-[0.95] mb-5">
-                {slides[idx].title}
-              </h3>
-              <p className="text-white/60 text-base md:text-xl leading-relaxed">{slides[idx].text}</p>
+    <section id="tech" className="bg-[#0a0a0a] py-20 md:py-32">
+      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
+        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4 text-center">Как это работает</p>
+        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] text-center mb-16 md:mb-20">
+          Три шага до комфорта
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+          {[
+            { n: '01', t: 'Магниты', d: 'Неодимовые магниты вшиты в каркас. Притягиваются к металлической рамке двери.', img: IMG.mesh },
+            { n: '02', t: 'Установка', d: 'Поднесите шторку к проёму. Магниты сами зафиксируют её за 5 секунд.', img: IMG.product },
+            { n: '03', t: 'Результат', d: 'Защита от солнца, пыли и насекомых. Отличный обзор изнутри.', img: IMG.installed },
+          ].map((x, i) => (
+            <div key={i}>
+              <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6">
+                <img src={x.img} alt={x.t} className="w-full h-full object-cover" />
+              </div>
+              <span className="text-white/10 text-5xl font-bold">{x.n}</span>
+              <h3 className="text-white text-xl md:text-2xl font-semibold mt-3 mb-2">{x.t}</h3>
+              <p className="text-white/50 text-sm md:text-base leading-relaxed">{x.d}</p>
             </div>
-          </div>
-        </div>
-        <div className="absolute right-5 md:right-10 top-1/2 -translate-y-1/2 flex flex-col gap-3">
-          {slides.map((_, i) => (
-            <div key={i} className={`w-2 h-2 rounded-full transition-all ${i === idx ? 'bg-white scale-125' : 'bg-white/20'}`} />
           ))}
         </div>
       </div>
@@ -252,27 +167,195 @@ function StickyProduct({ slides }: { slides: { img: string; title: string; text:
   );
 }
 
-// ============ STATS ============
-function Stats() {
+// ============ INTERACTIVE PRODUCT ============
+function InteractiveProduct() {
+  const [activeSlide, setActiveSlide] = useState(0);
+  const slides = [
+    { img: IMG.hero, title: 'Общий вид', desc: 'Каркасная шторка VELES на автомобильном окне' },
+    { img: IMG.mesh, title: 'Премиум-сетка', desc: 'Мелкоячеистая структура для отличного обзора' },
+    { img: IMG.installed, title: 'Установка', desc: 'Магнитное крепление за 5 секунд' },
+    { img: IMG.texture, title: 'Детали', desc: 'Натуральная кожа и стальной каркас' },
+  ];
+
+  return (
+    <section className="bg-black py-20 md:py-32">
+      <div className="max-w-[1440px] mx-auto px-5 md:px-10">
+        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Интерактивный просмотр</p>
+        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-8 md:mb-12">
+          Изучите продукт
+        </h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
+          <div className="aspect-square rounded-2xl overflow-hidden relative">
+            {slides.map((s, i) => (
+              <img
+                key={i}
+                src={s.img}
+                alt={s.title}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${i === activeSlide ? 'opacity-100' : 'opacity-0'}`}
+              />
+            ))}
+          </div>
+          <div>
+            <div className="space-y-4">
+              {slides.map((s, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveSlide(i)}
+                  className={`w-full text-left p-6 rounded-2xl border transition-all ${
+                    i === activeSlide
+                      ? 'bg-white/[0.06] border-white/[0.15]'
+                      : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04]'
+                  }`}
+                >
+                  <h3 className={`text-lg font-semibold mb-1 transition-colors ${i === activeSlide ? 'text-white' : 'text-white/60'}`}>
+                    {s.title}
+                  </h3>
+                  <p className={`text-sm transition-colors ${i === activeSlide ? 'text-white/60' : 'text-white/30'}`}>
+                    {s.desc}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============ FOR YOUR CAR ============
+function ForYourCar() {
   const { ref, visible } = useReveal();
-  const c1 = useCountUp(2000, visible);
-  const c2 = useCountUp(500, visible);
-  const c3 = useCountUp(150, visible);
+  const cars = [
+    { name: 'Toyota Camry', img: IMG.g1 },
+    { name: 'Kia Sportage', img: IMG.g2 },
+    { name: 'Hyundai Tucson', img: IMG.g3 },
+    { name: 'Mazda CX-5', img: IMG.g4 },
+    { name: 'Nissan X-Trail', img: IMG.g5 },
+    { name: 'Volkswagen Tiguan', img: IMG.g6 },
+  ];
 
   return (
     <section className="bg-[#0a0a0a] py-20 md:py-32">
       <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-16">
-          {[
-            { v: c1, s: '+', l: 'Довольных клиентов' },
-            { v: c2, s: '+', l: 'Моделей автомобилей' },
-            { v: c3, s: '+', l: 'Городов доставки' },
-          ].map((x, i) => (
-            <div key={i} className="text-center md:text-left">
-              <div className="text-6xl md:text-8xl lg:text-9xl font-bold text-white counter tracking-[-0.04em] leading-none">
-                {x.v}{x.s}
+        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Для вашего авто</p>
+        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-6 md:mb-8">
+          Более 500 моделей
+        </h2>
+        <p className="text-white/60 text-base md:text-lg max-w-2xl mb-12 md:mb-16">
+          Изготавливаем шторки индивидуально под каждую модель автомобиля. Вот несколько примеров:
+        </p>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+          {cars.map((car, i) => (
+            <div key={i} className="group">
+              <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-3">
+                <img src={car.img} alt={car.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
               </div>
-              <p className="text-white/25 text-xs md:text-sm mt-4 tracking-wide">{x.l}</p>
+              <h3 className="text-white text-sm md:text-base font-medium">{car.name}</h3>
+            </div>
+          ))}
+        </div>
+        <div className="mt-10 md:mt-12 text-center">
+          <p className="text-white/40 text-sm md:text-base">
+            Нет вашей модели? <a href="#order" className="text-white hover:text-white/80 transition-colors underline">Закажите</a> — изготовим под любой автомобиль
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============ INSTALLATION STEPS ============
+function InstallationSteps() {
+  const [step, setStep] = useState(0);
+  const steps = [
+    { img: IMG.product, title: 'Возьмите шторку', desc: 'Лёгкая конструкция весом всего 500 грамм' },
+    { img: IMG.installed, title: 'Приложите к окну', desc: 'Магниты автоматически выровняются с рамкой' },
+    { img: IMG.mesh, title: 'Зафиксируйте', desc: 'Неодимовые магниты надёжно притянутся за 1 секунду' },
+    { img: IMG.hero, title: 'Готово', desc: 'Шторка установлена. Наслаждайтесь комфортом' },
+  ];
+
+  return (
+    <section className="bg-black py-20 md:py-32">
+      <div className="max-w-[1440px] mx-auto px-5 md:px-10">
+        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Установка</p>
+        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-8 md:mb-12">
+          4 простых шага
+        </h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-center">
+          <div className="aspect-square rounded-2xl overflow-hidden relative">
+            {steps.map((s, i) => (
+              <img
+                key={i}
+                src={s.img}
+                alt={s.title}
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${i === step ? 'opacity-100' : 'opacity-0'}`}
+              />
+            ))}
+          </div>
+          <div>
+            <div className="space-y-3">
+              {steps.map((s, i) => (
+                <button
+                  key={i}
+                  onClick={() => setStep(i)}
+                  className={`w-full text-left p-5 rounded-xl border transition-all ${
+                    i === step
+                      ? 'bg-white/[0.06] border-white/[0.15]'
+                      : 'bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04]'
+                  }`}
+                >
+                  <div className="flex items-start gap-4">
+                    <span className={`text-2xl font-bold transition-colors ${i === step ? 'text-white' : 'text-white/20'}`}>
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <div className="flex-1">
+                      <h3 className={`text-base md:text-lg font-semibold mb-1 transition-colors ${i === step ? 'text-white' : 'text-white/60'}`}>
+                        {s.title}
+                      </h3>
+                      <p className={`text-sm transition-colors ${i === step ? 'text-white/60' : 'text-white/30'}`}>
+                        {s.desc}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div className="mt-6 p-4 rounded-xl bg-white/[0.03] border border-white/[0.08]">
+              <p className="text-white/50 text-sm">
+                <span className="text-white font-medium">Общее время:</span> 5 секунд. Без инструментов.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============ MATERIALS ============
+function Materials() {
+  const { ref, visible } = useReveal();
+  return (
+    <section className="bg-black py-20 md:py-32">
+      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
+        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Материалы</p>
+        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-12 md:mb-16">
+          Премиум в каждой детали
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+          {[
+            { t: 'Стальной каркас', d: 'Проволока 4 мм. Держит форму, не провисает. Служит годами.', img: IMG.product },
+            { t: 'Премиум-сетка', d: 'Мелкоячеистая структура. Отличный обзор изнутри, полная приватность снаружи.', img: IMG.mesh },
+            { t: 'Неодимовые магниты', d: 'N35. Сверхсильное сцепление. Не повреждают краску автомобиля.', img: IMG.installed },
+            { t: 'Натуральная кожа', d: 'Хлястики из кожи с логотипом VELES. Тактильно приятно, не выцветает.', img: IMG.texture },
+          ].map((x, i) => (
+            <div key={i} className="group">
+              <div className="aspect-[16/10] rounded-2xl overflow-hidden mb-4">
+                <img src={x.img} alt={x.t} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+              </div>
+              <h3 className="text-white text-xl font-semibold mb-2">{x.t}</h3>
+              <p className="text-white/50 text-sm md:text-base leading-relaxed">{x.d}</p>
             </div>
           ))}
         </div>
@@ -281,8 +364,8 @@ function Stats() {
   );
 }
 
-// ============ FEATURES ============
-function Features() {
+// ============ BENEFITS ============
+function Benefits() {
   const { ref, visible } = useReveal();
   const staggerRef = useRef<HTMLDivElement>(null);
   const [sv, setSv] = useState(false);
@@ -293,104 +376,26 @@ function Features() {
     return () => obs.disconnect();
   }, []);
 
-  const items = [
-    { n: '01', t: 'Солнце', d: 'Светопропускаемость 10%. Салон не нагревается. Экономия на кондиционере.' },
-    { n: '02', t: 'Насекомые', d: 'Мелкоячеистая сетка не пропускает мошек и комаров. Окна можно держать открытыми.' },
-    { n: '03', t: 'Приватность', d: 'Эффект тонировки без тонировки. Изнутри обзор, снаружи — ничего не видно.' },
-    { n: '04', t: 'Пыль', d: 'Салон остаётся чистым. Панель не выгорает. Меньше уборки.' },
-  ];
-
-  return (
-    <section className="bg-black py-20 md:py-32">
-      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
-        <p className="text-white/20 text-xs tracking-[0.3em] uppercase mb-4">Защита</p>
-        <h2 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] leading-[1.05] mb-12 md:mb-20 max-w-3xl">
-          Всё, от чего вы устали — больше не проблема.
-        </h2>
-        <div ref={staggerRef} className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children ${sv ? 'visible' : ''}`}>
-          {items.map((x, i) => (
-            <div key={i} className="feature-card p-6 md:p-8 rounded-2xl">
-              <span className="text-white/10 text-xs font-medium">{x.n}</span>
-              <h4 className="text-white text-lg md:text-xl font-semibold mt-4 mb-3">{x.t}</h4>
-              <p className="text-white/40 text-sm leading-relaxed">{x.d}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// ============ INSTALLATION ============
-function Installation() {
-  const { ref, visible } = useReveal();
-  return (
-    <Cinematic src={IMG.showroom}>
-      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 pb-20 md:pb-32 w-full reveal ${visible ? 'visible' : ''}`}>
-        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Установка</p>
-        <h2 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] leading-[0.95] mb-8">
-          Пять секунд.<br />Без инструментов.
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12 max-w-3xl">
-          {[
-            { s: '01', t: 'Приложите', d: 'Поднесите шторку к оконному проёму' },
-            { s: '02', t: 'Магниты сработают', d: 'Неодимовые магниты притянутся к рамке' },
-            { s: '03', t: 'Готово', d: 'Шторка зафиксирована. Наслаждайтесь' },
-          ].map((x, i) => (
-            <div key={i}>
-              <span className="text-white/10 text-3xl md:text-5xl font-bold">{x.s}</span>
-              <h4 className="text-white text-lg font-semibold mt-2 mb-1">{x.t}</h4>
-              <p className="text-white/40 text-sm">{x.d}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </Cinematic>
-  );
-}
-
-// ============ COMPARISON ============
-function Comparison() {
-  const { ref, visible } = useReveal();
   return (
     <section className="bg-[#0a0a0a] py-20 md:py-32">
       <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
-        <p className="text-white/20 text-xs tracking-[0.3em] uppercase mb-4 text-center">Сравнение</p>
-        <h2 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] text-center mb-12 md:mb-20">
-          VELES vs Тонировка
+        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Преимущества</p>
+        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-12 md:mb-16">
+          Что вы получаете
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 max-w-4xl mx-auto">
-          <div className="p-6 md:p-10 rounded-2xl border border-white/10 bg-white/[0.02]">
-            <h3 className="text-white/25 text-lg md:text-xl font-semibold mb-6">Тонировка</h3>
-            <ul className="space-y-3">
-              {['Штрафы ГИБДД', 'Нельзя снять на месте', 'Повреждает стекло', 'Ухудшает обзор ночью', 'Одноразовое решение'].map((x, i) => (
-                <li key={i} className="flex items-start gap-3 text-white/20 text-sm">
-                  <span className="mt-1.5 w-3 h-3 rounded-full border border-white/10 flex-shrink-0 flex items-center justify-center">
-                    <span className="w-1.5 h-[1px] bg-white/20" />
-                  </span>
-                  {x}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="p-6 md:p-10 rounded-2xl border border-white/25 bg-white/[0.04]">
-            <div className="flex items-center gap-2 mb-6">
-              <h3 className="text-white text-lg md:text-xl font-semibold">VELES</h3>
-              <span className="text-[9px] text-white/50 border border-white/20 rounded-full px-2 py-0.5 uppercase">Рекомендуем</span>
+        <div ref={staggerRef} className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children ${sv ? 'visible' : ''}`}>
+          {[
+            { n: '01', t: 'Защита от солнца', d: 'Светопропускаемость 10%. Салон не нагревается.' },
+            { n: '02', t: 'Насекомые', d: 'Мелкоячеистая сетка не пропускает мошек и комаров.' },
+            { n: '03', t: 'Приватность', d: 'Изнутри обзор, снаружи — ничего не видно.' },
+            { n: '04', t: 'Пыль', d: 'Салон остаётся чистым. Панель не выгорает.' },
+          ].map((x, i) => (
+            <div key={i} className="bg-white/[0.03] border border-white/[0.08] p-6 rounded-2xl hover:bg-white/[0.06] hover:border-white/[0.15] transition-all">
+              <span className="text-white/10 text-xs font-medium">{x.n}</span>
+              <h4 className="text-white text-lg font-semibold mt-4 mb-2">{x.t}</h4>
+              <p className="text-white/40 text-sm leading-relaxed">{x.d}</p>
             </div>
-            <ul className="space-y-3">
-              {['Полностью законно', 'Снимается за 10 секунд', 'Не повреждает авто', 'Отличный обзор всегда', 'Многоразовое'].map((x, i) => (
-                <li key={i} className="flex items-start gap-3 text-white/80 text-sm">
-                  <span className="mt-1.5 w-3 h-3 rounded-full border border-white/40 flex-shrink-0 flex items-center justify-center">
-                    <svg className="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  </span>
-                  {x}
-                </li>
-              ))}
-            </ul>
-          </div>
+          ))}
         </div>
       </div>
     </section>
@@ -406,40 +411,22 @@ function Gallery() {
       <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
         <div className="flex items-end justify-between mb-8 md:mb-12">
           <div>
-            <p className="text-white/20 text-xs tracking-[0.3em] uppercase mb-3">Галерея</p>
-            <h2 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em]">Реальные установки.</h2>
+            <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-3">Галерея</p>
+            <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em]">Реальные установки</h2>
           </div>
           <a href="https://vk.com/avtoshtorki_abakan" target="_blank" rel="noopener noreferrer" className="hidden md:block text-white/30 hover:text-white text-sm transition-colors">
-            VK →
+            Больше фото в VK →
           </a>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-4">
           {images.map((src, i) => (
             <div key={i} className={`aspect-square rounded-lg md:rounded-2xl overflow-hidden ${i === 0 ? 'md:col-span-2 md:row-span-2' : ''}`}>
-              <img src={src} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" loading="lazy" />
+              <img src={src} alt="Автошторки VELES установлены" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" loading="lazy" />
             </div>
           ))}
         </div>
       </div>
     </section>
-  );
-}
-
-// ============ LIFESTYLE ============
-function Lifestyle() {
-  const { ref, visible } = useReveal();
-  return (
-    <Cinematic src={IMG.family}>
-      <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 pb-20 md:pb-32 w-full reveal ${visible ? 'visible' : ''}`}>
-        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Для кого</p>
-        <h2 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] leading-[0.95] max-w-2xl">
-          Для тех, кто проводит в машине жизнь.
-        </h2>
-        <p className="mt-6 text-white/50 text-base md:text-xl max-w-lg leading-relaxed">
-          Таксисты и дальнобойщики. Родители с детьми. Путешественники. Все, кто понимает: комфорт в дороге — это не роскошь, а необходимость.
-        </p>
-      </div>
-    </Cinematic>
   );
 }
 
@@ -455,23 +442,21 @@ function Reviews() {
     return () => obs.disconnect();
   }, []);
 
-  const reviews = [
-    { t: 'Заказал шторки на Камри — качество космос. Установил за 5 минут, магниты держат мёртво.', n: 'Алексей К.', c: 'Toyota Camry' },
-    { t: 'Ребёнок наконец-то спит в машине днём! Шторки блокируют солнце, обзор отличный.', n: 'Мария С.', c: 'Kia Sportage' },
-    { t: 'Лучше любой тонировки. Законно, удобно. Снял за 10 секунд — никаких проблем.', n: 'Дмитрий В.', c: 'Hyundai Tucson' },
-    { t: 'Качество материалов на высоте. Кожаные хлястики, ровные швы, магниты мощные.', n: 'Ольга П.', c: 'Volkswagen Tiguan' },
-    { t: 'Второй раз заказываю. Пыль перестала лететь в салон, насекомые не пробираются.', n: 'Сергей М.', c: 'Mazda CX-5' },
-    { t: 'Салон не выгорает, кондиционер работает эффективнее. Рекомендую.', n: 'Анна Л.', c: 'Nissan X-Trail' },
-  ];
-
   return (
     <section id="reviews" className="bg-[#0a0a0a] py-20 md:py-32">
       <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
-        <p className="text-white/20 text-xs tracking-[0.3em] uppercase mb-4">Отзывы</p>
-        <h2 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em] mb-10 md:mb-16">Что говорят клиенты.</h2>
+        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Отзывы</p>
+        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-10 md:mb-16">Что говорят клиенты</h2>
         <div ref={staggerRef} className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-children ${sv ? 'visible' : ''}`}>
-          {reviews.map((r, i) => (
-            <div key={i} className="feature-card p-6 md:p-8 rounded-2xl">
+          {[
+            { t: 'Заказал шторки на Камри — качество космос. Установил за 5 минут, магниты держат мёртво.', n: 'Алексей К.', c: 'Toyota Camry' },
+            { t: 'Ребёнок наконец-то спит в машине днём! Шторки блокируют солнце, обзор отличный.', n: 'Мария С.', c: 'Kia Sportage' },
+            { t: 'Лучше любой тонировки. Законно, удобно. Снял за 10 секунд — никаких проблем.', n: 'Дмитрий В.', c: 'Hyundai Tucson' },
+            { t: 'Качество материалов на высоте. Кожаные хлястики, ровные швы, магниты мощные.', n: 'Ольга П.', c: 'Volkswagen Tiguan' },
+            { t: 'Второй раз заказываю. Пыль перестала лететь в салон, насекомые не пробираются.', n: 'Сергей М.', c: 'Mazda CX-5' },
+            { t: 'Салон не выгорает, кондиционер работает эффективнее. Рекомендую.', n: 'Анна Л.', c: 'Nissan X-Trail' },
+          ].map((r, i) => (
+            <div key={i} className="bg-white/[0.03] border border-white/[0.08] p-6 rounded-2xl">
               <p className="text-white/70 text-sm leading-relaxed mb-6">"{r.t}"</p>
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
@@ -494,22 +479,20 @@ function Reviews() {
 function FAQ() {
   const [open, setOpen] = useState<number | null>(null);
   const { ref, visible } = useReveal();
-  const faqs = [
-    { q: 'Подойдут ли шторки на мой автомобиль?', a: 'Мы изготавливаем шторки индивидуально под каждую модель. Более 500 моделей в базе.' },
-    { q: 'Не ухудшится ли обзор?', a: 'Мелкоячеистая сетка обеспечивает отличную прозрачность изнутри. Снаружи салон скрыт.' },
-    { q: 'Как крепятся шторки?', a: 'Неодимовые магниты вшиты в каркас. Никакого клея или скотча — краска не повреждается.' },
-    { q: 'Можно ли опускать стёкла?', a: 'Да, шторки остаются на месте. Обеспечивается вентиляция без пыли и насекомых.' },
-    { q: 'Какой срок изготовления?', a: '1-3 рабочих дня. Доставка по России 3-7 дней.' },
-    { q: 'Это законно?', a: 'Да. Каркасные шторки не являются тонировкой. Никаких штрафов.' },
-  ];
-
   return (
     <section className="bg-black py-20 md:py-32">
       <div ref={ref} className={`max-w-3xl mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
-        <p className="text-white/20 text-xs tracking-[0.3em] uppercase mb-4 text-center">FAQ</p>
-        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.03em] text-center mb-12 md:mb-16">Частые вопросы.</h2>
+        <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4 text-center">FAQ</p>
+        <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] text-center mb-12 md:mb-16">Частые вопросы</h2>
         <div className="space-y-0">
-          {faqs.map((f, i) => (
+          {[
+            { q: 'Подойдут ли шторки на мой автомобиль?', a: 'Мы изготавливаем шторки индивидуально под каждую модель. Более 500 моделей в базе.' },
+            { q: 'Не ухудшится ли обзор?', a: 'Мелкоячеистая сетка обеспечивает отличную прозрачность изнутри. Снаружи салон скрыт.' },
+            { q: 'Как крепятся шторки?', a: 'Неодимовые магниты вшиты в каркас. Никакого клея или скотча — краска не повреждается.' },
+            { q: 'Можно ли опускать стёкла?', a: 'Да, шторки остаются на месте. Обеспечивается вентиляция без пыли и насекомых.' },
+            { q: 'Какой срок изготовления?', a: '1-3 рабочих дня. Доставка по России 3-7 дней.' },
+            { q: 'Это законно?', a: 'Да. Каркасные шторки не являются тонировкой. Никаких штрафов.' },
+          ].map((f, i) => (
             <div key={i} className="border-b border-white/10">
               <button onClick={() => setOpen(open === i ? null : i)} className="w-full py-5 flex items-center justify-between text-left gap-4">
                 <span className={`text-sm md:text-base font-medium transition-colors ${open === i ? 'text-white' : 'text-white/60'}`}>{f.q}</span>
@@ -544,9 +527,9 @@ function Order() {
     <section id="order" className="bg-[#0a0a0a] py-20 md:py-32">
       <div ref={ref} className={`max-w-2xl mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
         <div className="text-center mb-10">
-          <p className="text-white/20 text-xs tracking-[0.3em] uppercase mb-4">Заказ</p>
-          <h2 className="text-white text-3xl md:text-5xl lg:text-6xl font-bold tracking-[-0.03em]">Закажите шторки.</h2>
-          <p className="mt-4 text-white/40 text-sm md:text-base">Свяжемся в течение 30 минут.</p>
+          <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Заказ</p>
+          <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em]">Закажите шторки VELES</h2>
+          <p className="mt-4 text-white/40 text-sm md:text-base">Свяжемся в течение 30 минут для подбора под ваш автомобиль</p>
         </div>
         {done ? (
           <div className="text-center py-16 rounded-2xl border border-white/10">
@@ -563,7 +546,7 @@ function Order() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[
                 { k: 'name', p: 'Ваше имя', t: 'text' },
-                { k: 'car', p: 'Марка и модель', t: 'text' },
+                { k: 'car', p: 'Марка и модель авто', t: 'text' },
                 { k: 'year', p: 'Год выпуска', t: 'text' },
                 { k: 'phone', p: 'Телефон', t: 'tel' },
               ].map(f => (
@@ -576,32 +559,9 @@ function Order() {
                 />
               ))}
             </div>
-            <button type="submit" className="btn-primary w-full py-3.5 rounded-full text-sm font-medium mt-2">Отправить заявку</button>
+            <button type="submit" className="w-full bg-white text-black py-3.5 rounded-full text-sm font-medium mt-2 hover:bg-gray-200 transition-colors">Отправить заявку</button>
           </form>
         )}
-      </div>
-    </section>
-  );
-}
-
-// ============ FINAL CTA ============
-function FinalCTA() {
-  const { ref, visible } = useReveal();
-  return (
-    <section className="relative h-[80vh] md:h-[100svh] min-h-[500px] flex items-center justify-center overflow-hidden">
-      <img src={IMG.road} alt="" className="absolute inset-0 w-full h-full object-cover" />
-      <div className="absolute inset-0 overlay-center" />
-      <div ref={ref} className={`relative z-10 max-w-[1200px] mx-auto px-5 md:px-10 text-center reveal-scale ${visible ? 'visible' : ''}`}>
-        <h2 className="text-white text-4xl md:text-6xl lg:text-8xl font-bold tracking-[-0.04em] leading-[0.9]">
-          Ваша следующая<br />поездка может быть<br />другой.
-        </h2>
-        <p className="mt-8 md:mt-12 text-white/50 text-base md:text-xl max-w-lg mx-auto leading-relaxed font-light">
-          Один заказ — и каждый день за рулём станет комфортнее.
-        </p>
-        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
-          <a href="#order" className="btn-primary px-10 py-4 rounded-full text-sm">Оформить заказ</a>
-          <a href="tel:+79134421234" className="btn-secondary px-10 py-4 rounded-full text-sm">+7 (913) 442-12-34</a>
-        </div>
       </div>
     </section>
   );
@@ -615,8 +575,8 @@ function Contacts() {
       <div ref={ref} className={`max-w-[1440px] mx-auto px-5 md:px-10 reveal ${visible ? 'visible' : ''}`}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
           <div>
-            <p className="text-white/20 text-xs tracking-[0.3em] uppercase mb-4">Контакты</p>
-            <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.03em] mb-8">Свяжитесь с нами.</h2>
+            <p className="text-white/30 text-xs tracking-[0.3em] uppercase mb-4">Контакты</p>
+            <h2 className="text-white text-3xl md:text-5xl font-bold tracking-[-0.02em] mb-8">Свяжитесь с нами</h2>
             <div className="space-y-6">
               {[
                 { l: 'Телефон', v: '+7 (913) 442-12-34', h: 'tel:+79134421234' },
@@ -632,7 +592,7 @@ function Contacts() {
             </div>
           </div>
           <div className="aspect-square rounded-2xl overflow-hidden">
-            <img src={IMG.g6} alt="" className="w-full h-full object-cover" />
+            <img src={IMG.g6} alt="VELES контакты" className="w-full h-full object-cover" />
           </div>
         </div>
       </div>
@@ -665,18 +625,17 @@ export default function App() {
     <div className="overflow-x-hidden">
       <Nav />
       <Hero />
-      <Manifesto />
-      <Product />
-      <Stats />
-      <Features />
-      <Installation />
-      <Comparison />
+      <WhatIsIt />
+      <InteractiveProduct />
+      <InstallationSteps />
+      <HowItWorks />
+      <Materials />
+      <ForYourCar />
+      <Benefits />
       <Gallery />
-      <Lifestyle />
       <Reviews />
       <FAQ />
       <Order />
-      <FinalCTA />
       <Contacts />
       <Footer />
     </div>
