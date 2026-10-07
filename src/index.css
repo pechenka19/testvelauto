@@ -1,22 +1,22 @@
 @import "tailwindcss";
 
 /* ========================================
-   DESIGN SYSTEM TOKENS
+   DESIGN SYSTEM TOKENS (Tailwind v4)
    ======================================== */
 
 @theme {
   /* Colors */
-  --color-primary: #000000;
-  --color-secondary: #0a0a0a;
-  --color-accent: #ffffff;
-  --color-muted: rgba(255, 255, 255, 0.6);
-  --color-border: rgba(255, 255, 255, 0.1);
+  --color-void: #0A0A0B;
+  --color-abyss: #111113;
+  --color-fog: #EDEDED;
+  --color-brass: #C9A86A;
+  --color-steel: #8A8D91;
   
   /* Typography Scale (Fluid) */
-  --text-display: clamp(3rem, 8vw, 8rem);
-  --text-h1: clamp(2.5rem, 6vw, 6rem);
-  --text-h2: clamp(2rem, 4vw, 4rem);
-  --text-h3: clamp(1.5rem, 3vw, 2.5rem);
+  --text-chapter: clamp(3.5rem, 10vw, 10rem);
+  --text-display: clamp(2.5rem, 6vw, 6rem);
+  --text-h1: clamp(2rem, 4vw, 4rem);
+  --text-h2: clamp(1.5rem, 3vw, 2.5rem);
   --text-body: clamp(1rem, 1.5vw, 1.25rem);
   --text-caption: clamp(0.75rem, 1vw, 0.875rem);
   
@@ -28,7 +28,7 @@
   --space-xl: 48px;
   --space-2xl: 64px;
   --space-3xl: 96px;
-  --space-section: clamp(4rem, 10vw, 10rem);
+  --space-section: min(20vh, 24rem);
   
   /* Layout */
   --max-width: 1440px;
@@ -41,15 +41,15 @@
 
 @layer base {
   html {
-    scroll-behavior: smooth;
+    scroll-behavior: auto; /* Lenis handles smooth scroll */
     overflow-x: hidden;
   }
 
   body {
-    background-color: var(--color-primary);
-    color: var(--color-accent);
+    background-color: var(--color-void);
+    color: var(--color-fog);
     overflow-x: hidden;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     line-height: 1.6;
@@ -65,8 +65,8 @@
   }
 
   ::selection {
-    background-color: rgba(255, 255, 255, 0.2);
-    color: var(--color-accent);
+    background-color: rgba(201, 168, 106, 0.3);
+    color: var(--color-fog);
   }
 
   ::-webkit-scrollbar {
@@ -75,49 +75,67 @@
 }
 
 /* ========================================
-   UTILITY CLASSES
+   TYPOGRAPHY UTILITIES
    ======================================== */
 
 @layer components {
-  /* Fluid Typography */
-  .text-display {
-    font-size: var(--text-display);
+  /* Display Typography */
+  .text-chapter {
+    font-family: 'Unbounded', sans-serif;
+    font-size: var(--text-chapter);
     line-height: 0.9;
     letter-spacing: -0.03em;
-    font-weight: 700;
+    font-weight: 300;
+  }
+
+  .text-display {
+    font-family: 'Unbounded', sans-serif;
+    font-size: var(--text-display);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-weight: 400;
   }
 
   .text-h1 {
+    font-family: 'Unbounded', sans-serif;
     font-size: var(--text-h1);
-    line-height: 1;
+    line-height: 1.1;
     letter-spacing: -0.02em;
-    font-weight: 700;
+    font-weight: 400;
   }
 
   .text-h2 {
+    font-family: 'Unbounded', sans-serif;
     font-size: var(--text-h2);
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-    font-weight: 600;
-  }
-
-  .text-h3 {
-    font-size: var(--text-h3);
     line-height: 1.2;
     letter-spacing: -0.01em;
-    font-weight: 600;
+    font-weight: 400;
   }
 
+  /* Quote Typography */
+  .text-quote {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
+    line-height: 1.4;
+    font-weight: 300;
+  }
+
+  /* Body Typography */
   .text-body {
+    font-family: 'Manrope', sans-serif;
     font-size: var(--text-body);
     line-height: 1.6;
+    font-weight: 300;
   }
 
   .text-caption {
+    font-family: 'Manrope', sans-serif;
     font-size: var(--text-caption);
     line-height: 1.5;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
+    font-weight: 500;
   }
 
   /* Container */
@@ -153,47 +171,18 @@
     transform: translateY(0);
   }
 
-  /* Buttons */
-  .btn-primary {
-    background: var(--color-accent);
-    color: var(--color-primary);
-    font-weight: 500;
-    padding: var(--space-sm) var(--space-lg);
-    border-radius: 999px;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Letter Reveal */
+  .letter-reveal span {
     display: inline-block;
-    text-align: center;
+    opacity: 0;
+    transform: translateY(100%);
+    transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .btn-primary:hover {
-    background: #e8e8e8;
-    transform: scale(1.02);
-  }
-
-  .btn-secondary {
-    border: 1px solid var(--color-border);
-    color: var(--color-accent);
-    font-weight: 500;
-    padding: var(--space-sm) var(--space-lg);
-    border-radius: 999px;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    display: inline-block;
-    text-align: center;
-  }
-
-  .btn-secondary:hover {
-    border-color: rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  /* Overlays */
-  .overlay-gradient {
-    background: linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.4) 0%,
-      rgba(0, 0, 0, 0.2) 40%,
-      rgba(0, 0, 0, 0.8) 100%
-    );
+  .letter-reveal.visible span {
+    opacity: 1;
+    transform: translateY(0);
   }
 
   /* Smooth Scroll Container */

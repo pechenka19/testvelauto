@@ -3,21 +3,47 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#000000" />
-    <meta name="description" content="VELES — каркасные автошторки премиум-класса на магнитном креплении. Защита от солнца, пыли и насекомых. Установка за 5 секунд." />
+    <meta name="theme-color" content="#0A0A0B" />
     
-    <!-- Preload critical fonts -->
+    <!-- SEO Meta -->
+    <title>VELES — Каркасные автошторки. Свет под контролем.</title>
+    <meta name="description" content="Премиальные каркасные автошторки на магнитном креплении. Ручная работа. Стальной каркас 4мм, неодимовые магниты N35. Производство в Абакане." />
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="VELES — Свет под контролем" />
+    <meta property="og:description" content="Премиальные каркасные автошторки на магнитном креплении. Ручная работа из Абакана." />
+    <meta property="og:image" content="/og-image.jpg" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="VELES — Свет под контролем" />
+    <meta name="twitter:description" content="Премиальные каркасные автошторки на магнитном креплении." />
+    
+    <!-- Font Preloads -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     
-    <!-- Preload hero image for LCP -->
-    <link rel="preload" as="image" href="https://image.qwenlm.ai/generated-images/61714e6e-1d6b-48cb-aba7-de7e6f2162b7/_result.png" />
+    <!-- Display Font: Unbounded -->
+    <link 
+      href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600&display=swap" 
+      rel="stylesheet" 
+    />
     
-    <title>VELES — Каркасные Автошторки Премиум-Класса</title>
+    <!-- Quote Font: Cormorant Garamond -->
+    <link 
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap" 
+      rel="stylesheet" 
+    />
     
+    <!-- Body Font: Manrope -->
+    <link 
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500&display=swap" 
+      rel="stylesheet" 
+    />
+    
+    <!-- Critical CSS -->
     <style>
-      /* Critical CSS for above-the-fold content */
       html, body {
         margin: 0;
         padding: 0;
@@ -25,19 +51,23 @@
         min-height: 100%;
         min-height: 100dvh;
         overflow-x: hidden;
-        background: #000;
-        color: #fff;
+        background: #0A0A0B;
+        color: #EDEDED;
       }
       
       * {
         box-sizing: border-box;
       }
       
-      /* Prevent FOUT */
       body {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
+      }
+      
+      /* Prevent FOUT */
+      .fonts-loaded body {
+        opacity: 1;
       }
       
       /* iOS input zoom prevention */
@@ -49,11 +79,6 @@
         input, select, textarea {
           font-size: inherit;
         }
-      }
-      
-      /* Smooth scroll behavior */
-      html {
-        scroll-behavior: smooth;
       }
     </style>
   </head>
