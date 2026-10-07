@@ -29,7 +29,21 @@ export default function Chapter1Genesis() {
       const title = titleRef.current;
       if (title) {
         const text = title.textContent || '';
+        
+        // Create accessible hidden text for screen readers
+        const accessibleText = document.createElement('span');
+        accessibleText.className = 'sr-only';
+        accessibleText.textContent = text;
+        
+        // Create animated container
+        const animatedContainer = document.createElement('div');
+        animatedContainer.className = 'letter-reveal';
+        animatedContainer.setAttribute('aria-hidden', 'true');
+        
+        // Clear and rebuild title
         title.innerHTML = '';
+        title.appendChild(accessibleText);
+        title.appendChild(animatedContainer);
         
         text.split('').forEach((char, i) => {
           const span = document.createElement('span');
@@ -37,7 +51,7 @@ export default function Chapter1Genesis() {
           span.style.display = 'inline-block';
           span.style.opacity = '0';
           span.style.transform = 'translateY(100%)';
-          title.appendChild(span);
+          animatedContainer.appendChild(span);
 
           gsap.to(span, {
             opacity: 1,

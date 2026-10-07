@@ -112,33 +112,33 @@ export default function Chapter2Heart() {
         </header>
 
         {/* Stats grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-24">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-8 mb-24">
           <div className="text-center">
-            <div className="stat-number text-display text-brass mb-4" data-target="4">
+            <div className="stat-number text-[clamp(3rem,8vw,5rem)] text-brass mb-4 leading-none" data-target="4">
               0
             </div>
-            <p className="text-caption text-steel">миллиметра</p>
-            <p className="text-body text-fog/60 mt-4">
+            <p className="text-caption text-steel mb-2">миллиметра</p>
+            <p className="text-sm text-fog/60 max-w-xs mx-auto">
               Стальной каркас. Не 3 — потому что гнётся. Не 5 — потому что тяжелит дверь.
             </p>
           </div>
           
           <div className="text-center">
-            <div className="stat-number text-display text-brass mb-4" data-target="35">
+            <div className="stat-number text-[clamp(3rem,8vw,5rem)] text-brass mb-4 leading-none" data-target="35">
               0
             </div>
-            <p className="text-caption text-steel">мегаэрстед</p>
-            <p className="text-body text-fog/60 mt-4">
+            <p className="text-caption text-steel mb-2">мегаэрстед</p>
+            <p className="text-sm text-fog/60 max-w-xs mx-auto">
               Коэрцитивная сила неодимового магнита класса N35.
             </p>
           </div>
           
           <div className="text-center">
-            <div className="stat-number text-display text-brass mb-4" data-target="200">
+            <div className="stat-number text-[clamp(3rem,8vw,5rem)] text-brass mb-4 leading-none" data-target="200">
               0
             </div>
-            <p className="text-caption text-steel">прототипов</p>
-            <p className="text-body text-fog/60 mt-4">
+            <p className="text-caption text-steel mb-2">прототипов</p>
+            <p className="text-sm text-fog/60 max-w-xs mx-auto">
               Баланс найден через 200 итераций. 4 — это совершенство.
             </p>
           </div>

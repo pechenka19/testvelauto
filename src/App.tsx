@@ -46,10 +46,10 @@ function Chapter3Body() {
   return (
     <section
       id="chapter-3"
-      className="min-h-screen flex items-center justify-center bg-void section-padding"
+      className="relative min-h-[60vh] flex items-center justify-center bg-void"
       aria-label="Глава 3: Тело"
     >
-      <div className="container-fluid text-center">
+      <div className="container-fluid text-center py-32">
         <p className="text-caption text-brass mb-8">Глава 03 — Тело</p>
         <h2 className="text-chapter text-fog mb-8">
           Вы видите мир.
@@ -57,7 +57,7 @@ function Chapter3Body() {
           Мир не видит вас.
         </h2>
         <p className="text-body text-steel max-w-2xl mx-auto">
-          [Placeholder for Chapter 3 content]
+          Премиум-сетка. Светопропускаемость 10%. Изнутри — панорамный обзор. Снаружи — глубокая тень.
         </p>
       </div>
     </section>
@@ -68,10 +68,10 @@ function Chapter4Craft() {
   return (
     <section
       id="chapter-4"
-      className="min-h-screen flex items-center justify-center bg-abyss section-padding"
+      className="relative min-h-[60vh] flex items-center justify-center bg-abyss"
       aria-label="Глава 4: Мастерство"
     >
-      <div className="container-fluid text-center">
+      <div className="container-fluid text-center py-32">
         <p className="text-caption text-brass mb-8">Глава 04 — Мастерство</p>
         <h2 className="text-chapter text-fog mb-8">
           Одно окно.
@@ -81,7 +81,7 @@ function Chapter4Craft() {
           Один мастер.
         </h2>
         <p className="text-body text-steel max-w-2xl mx-auto">
-          [Placeholder for Chapter 4 content]
+          В Абакане, в мастерской, мастер берёт стальной пруток. Не конвейер. Верстак. Тиски. Лекало.
         </p>
       </div>
     </section>
@@ -92,10 +92,10 @@ function Chapter5Experience() {
   return (
     <section
       id="chapter-5"
-      className="min-h-screen flex items-center justify-center bg-void section-padding"
+      className="relative min-h-[60vh] flex items-center justify-center bg-void"
       aria-label="Глава 5: Ощущения"
     >
-      <div className="container-fluid text-center">
+      <div className="container-fluid text-center py-32">
         <p className="text-caption text-brass mb-8">Глава 05 — Ощущения</p>
         <h2 className="text-chapter text-fog mb-8">
           Тишина стала
@@ -103,7 +103,7 @@ function Chapter5Experience() {
           плотнее.
         </h2>
         <p className="text-body text-steel max-w-2xl mx-auto">
-          [Placeholder for Chapter 5 content]
+          Вы садитесь в машину. Салон не раскалён. Свет — мягкий, рассеянный, как в пасмурный день.
         </p>
       </div>
     </section>
@@ -114,10 +114,10 @@ function Chapter6Legacy() {
   return (
     <section
       id="chapter-6"
-      className="min-h-screen flex items-center justify-center bg-abyss section-padding"
+      className="relative min-h-[60vh] flex items-center justify-center bg-abyss"
       aria-label="Глава 6: Наследие"
     >
-      <div className="container-fluid text-center">
+      <div className="container-fluid text-center py-32">
         <p className="text-caption text-brass mb-8">Глава 06 — Наследие</p>
         <h2 className="text-chapter text-fog mb-8">
           Из Абакана —
@@ -125,7 +125,7 @@ function Chapter6Legacy() {
           в путь.
         </h2>
         <p className="text-body text-steel max-w-2xl mx-auto">
-          [Placeholder for Chapter 6 content]
+          В Абакане — мастерская. За её пределами — вся Россия. От Калининграда до Владивостока.
         </p>
       </div>
     </section>
