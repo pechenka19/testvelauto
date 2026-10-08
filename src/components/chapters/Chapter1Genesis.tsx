@@ -117,7 +117,7 @@ export default function Chapter1Genesis() {
     <section
       id="chapter-1"
       ref={sectionRef}
-      className="relative min-h-[80vh] flex items-center justify-center overflow-hidden py-32"
+      className="relative min-h-screen flex items-center justify-center overflow-hidden"
       aria-label="Глава 1: Истоки"
     >
       {/* Background photo with parallax zoom */}
@@ -126,13 +126,15 @@ export default function Chapter1Genesis() {
           src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1920&q=80&auto=format&fit=crop"
           alt=""
           className="chapter1-bg absolute inset-0 w-full h-full object-cover"
+          loading="eager"
           fetchPriority="high"
+          sizes="(max-width: 768px) 100vw, 1920px"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-void/90 via-void/60 to-transparent" />
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container-fluid text-center max-w-5xl">
+      <div className="relative z-10 container-fluid text-center max-w-5xl py-32">
         {/* Chapter number */}
         <p className="text-caption text-brass mb-8 animate-fade-in delay-300">
           Глава 01 — Истоки

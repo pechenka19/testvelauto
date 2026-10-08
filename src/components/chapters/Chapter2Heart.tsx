@@ -73,21 +73,14 @@ export default function Chapter2Heart() {
         },
       });
 
-      // TODO: Howler.js audio trigger
-      // import { Howl } from 'howler';
-      // 
-      // const magneticClickSound = new Howl({
-      //   src: ['/audio/magnetic-click.mp3'],
-      //   volume: 0.7,
-      // });
-      // 
-      // ScrollTrigger.create({
-      //   trigger: '.magnetic-moment',
-      //   start: 'top center',
-      //   onEnter: () => {
-      //     if (!isMuted) magneticClickSound.play();
-      //   },
-      // });
+      // Sticky scroll for blueprint
+      ScrollTrigger.create({
+        trigger: '.blueprint-container',
+        start: 'top top',
+        end: '+=100%',
+        pin: true,
+        scrub: 1,
+      });
     }, sectionRef);
 
     return () => ctx.revert();
@@ -97,7 +90,7 @@ export default function Chapter2Heart() {
     <section
       id="chapter-2"
       ref={sectionRef}
-      className="relative min-h-[80vh] overflow-hidden py-32"
+      className="relative min-h-[200vh] overflow-hidden"
       aria-label="Глава 2: Сердце технологии"
     >
       {/* Background photo */}
@@ -107,11 +100,12 @@ export default function Chapter2Heart() {
           alt=""
           className="absolute inset-0 w-full h-full object-cover opacity-30"
           loading="lazy"
+          sizes="(max-width: 768px) 100vw, 1920px"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-void/95 via-void/70 to-void/40" />
       </div>
       
-      <div className="container-fluid relative z-10">
+      <div className="container-fluid relative z-10 py-32">
         {/* Chapter header */}
         <header className="text-center mb-24">
           <p className="text-caption text-brass mb-8">
@@ -158,8 +152,8 @@ export default function Chapter2Heart() {
           </div>
         </div>
 
-        {/* SVG Blueprint */}
-        <div className="max-w-4xl mx-auto mb-24">
+        {/* SVG Blueprint with sticky scroll */}
+        <div className="blueprint-container max-w-4xl mx-auto mb-24">
           <svg
             ref={svgRef}
             viewBox="0 0 800 400"

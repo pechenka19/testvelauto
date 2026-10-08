@@ -19,32 +19,35 @@ export default function Chapter4Craft() {
     if (!sectionRef.current || isMobile) return;
 
     const ctx = gsap.context(() => {
-      // Sticky scroll for desktop
       const panels = gsap.utils.toArray<HTMLElement>('.craft-panel');
       
+      // Initial state
       panels.forEach((panel, i) => {
-        gsap.from(panel, {
-          opacity: 0,
-          y: 50,
-          duration: 1,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: panel,
-            start: 'top 80%',
-            end: 'top 20%',
-            scrub: 1,
-          },
+        gsap.set(panel, { 
+          opacity: i === 0 ? 1 : 0,
+          zIndex: i === 0 ? 1 : 0
         });
       });
 
-      // Pin the section
-      ScrollTrigger.create({
-        trigger: sectionRef.current,
-        start: 'top top',
-        end: '+=300%',
-        pin: true,
-        scrub: 1,
+      // Timeline with pin
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: 'top top',
+          end: '+=300%',
+          pin: true,
+          scrub: true,
+          anticipatePin: 1,
+        }
       });
+
+      // Panel 1 → 2
+      tl.to(panels[0], { opacity: 0, duration: 1 }, 0)
+        .to(panels[1], { opacity: 1, zIndex: 1, duration: 1 }, 0);
+
+      // Panel 2 → 3
+      tl.to(panels[1], { opacity: 0, zIndex: 0, duration: 1 }, 1)
+        .to(panels[2], { opacity: 1, zIndex: 1, duration: 1 }, 1);
     }, sectionRef);
 
     return () => ctx.revert();
@@ -107,7 +110,7 @@ export default function Chapter4Craft() {
     );
   }
 
-  // Desktop version - sticky scroll
+  // Desktop version - sticky scroll with timeline
   return (
     <section
       id="chapter-4"
@@ -123,6 +126,7 @@ export default function Chapter4Craft() {
             alt="Мастер за работой"
             className="w-full h-full object-cover"
             loading="lazy"
+            sizes="(max-width: 768px) 100vw, 1920px"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-void/90 via-void/60 to-transparent" />
         </div>
@@ -140,13 +144,14 @@ export default function Chapter4Craft() {
       </div>
 
       {/* Panel 2: Patterns */}
-      <div className="craft-panel absolute inset-0 flex items-center opacity-0">
+      <div className="craft-panel absolute inset-0 flex items-center">
         <div className="absolute inset-0">
           <img 
             src="https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=1920&q=80&auto=format&fit=crop"
             alt="Лекала"
             className="w-full h-full object-cover"
             loading="lazy"
+            sizes="(max-width: 768px) 100vw, 1920px"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-void/90 via-void/60 to-transparent" />
         </div>
@@ -164,13 +169,14 @@ export default function Chapter4Craft() {
       </div>
 
       {/* Panel 3: Engraving */}
-      <div className="craft-panel absolute inset-0 flex items-center opacity-0">
+      <div className="craft-panel absolute inset-0 flex items-center">
         <div className="absolute inset-0">
           <img 
             src="https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=1920&q=80&auto=format&fit=crop"
             alt="Гравировка номера партии"
             className="w-full h-full object-cover"
             loading="lazy"
+            sizes="(max-width: 768px) 100vw, 1920px"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-void/90 via-void/60 to-transparent" />
         </div>
@@ -186,20 +192,6 @@ export default function Chapter4Craft() {
           </p>
         </div>
       </div>
-
-      {/* TODO: Howler.js ambient workshop sound */}
-      {/* const workshopAmbient = new Howl({
-        src: ['/audio/workshop-ambient.mp3'],
-        volume: 0.3,
-        loop: true,
-      });
-      
-      ScrollTrigger.create({
-        trigger: sectionRef.current,
-        start: 'top center',
-        onEnter: () => workshopAmbient.fade(0, 0.3, 2000),
-        onLeaveBack: () => workshopAmbient.fade(0.3, 0, 1000),
-      }); */}
     </section>
   );
 }
