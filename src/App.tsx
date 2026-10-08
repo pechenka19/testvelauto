@@ -5,6 +5,8 @@ import Lenis from 'lenis';
 
 import ChapterProgress from './components/ChapterProgress';
 import AudioControl from './components/AudioControl';
+import CookieBanner from './components/CookieBanner';
+import Logo from './components/Logo';
 import Chapter1Genesis from './components/chapters/Chapter1Genesis';
 import Chapter2Heart from './components/chapters/Chapter2Heart';
 import Chapter3Body from './components/chapters/Chapter3Body';
@@ -24,14 +26,6 @@ function useLenis() {
       touchMultiplier: 2,
     });
 
-    function raf(time: number) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
-
-    requestAnimationFrame(raf);
-
-    // Sync with GSAP ScrollTrigger
     lenis.on('scroll', ScrollTrigger.update);
 
     gsap.ticker.add((time) => {
@@ -41,6 +35,7 @@ function useLenis() {
     gsap.ticker.lagSmoothing(0);
 
     return () => {
+      gsap.ticker.remove(lenis.raf);
       lenis.destroy();
     };
   }, []);
@@ -48,7 +43,7 @@ function useLenis() {
 
 // ============ MAIN APP ============
 export default function App() {
-  useLenis(); // Initialize smooth scroll
+  useLenis();
 
   const chapters = [
     'chapter-1',
@@ -61,29 +56,17 @@ export default function App() {
 
   return (
     <div className="overflow-x-hidden smooth-scroll">
-      {/* Audio Control */}
+      <Logo />
       <AudioControl />
-      
-      {/* Chapter Progress Navigation */}
+      <CookieBanner />
       <ChapterProgress chapters={chapters} />
 
       <main>
-        {/* Chapter 1: THE GENESIS */}
         <Chapter1Genesis />
-
-        {/* Chapter 2: THE HEART */}
         <Chapter2Heart />
-
-        {/* Chapter 3: THE BODY */}
         <Chapter3Body />
-
-        {/* Chapter 4: THE CRAFT */}
         <Chapter4Craft />
-
-        {/* Chapter 5: THE EXPERIENCE */}
         <Chapter5Experience />
-
-        {/* Chapter 6: THE LEGACY */}
         <Chapter6Legacy />
       </main>
     </div>
