@@ -117,14 +117,18 @@ export default function Chapter1Genesis() {
     <section
       id="chapter-1"
       ref={sectionRef}
-      className="relative min-h-screen flex items-center justify-center overflow-hidden"
-      style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}
+      className="relative min-h-[80vh] flex items-center justify-center overflow-hidden py-32"
       aria-label="Глава 1: Истоки"
     >
-      {/* Background with parallax zoom */}
+      {/* Background photo with parallax zoom */}
       <div className="absolute inset-0">
-        <div className="chapter1-bg absolute inset-0 bg-gradient-to-br from-void via-abyss to-void" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(201,168,106,0.08)_0%,_transparent_70%)]" />
+        <img 
+          src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1920&q=80&auto=format&fit=crop"
+          alt=""
+          className="chapter1-bg absolute inset-0 w-full h-full object-cover"
+          fetchPriority="high"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-void/90 via-void/60 to-transparent" />
       </div>
 
       {/* Content */}

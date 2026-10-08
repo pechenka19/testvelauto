@@ -74,6 +74,8 @@ export default function Chapter2Heart() {
       });
 
       // TODO: Howler.js audio trigger
+      // import { Howl } from 'howler';
+      // 
       // const magneticClickSound = new Howl({
       //   src: ['/audio/magnetic-click.mp3'],
       //   volume: 0.7,
@@ -82,7 +84,9 @@ export default function Chapter2Heart() {
       // ScrollTrigger.create({
       //   trigger: '.magnetic-moment',
       //   start: 'top center',
-      //   onEnter: () => magneticClickSound.play(),
+      //   onEnter: () => {
+      //     if (!isMuted) magneticClickSound.play();
+      //   },
       // });
     }, sectionRef);
 
@@ -93,11 +97,21 @@ export default function Chapter2Heart() {
     <section
       id="chapter-2"
       ref={sectionRef}
-      className="relative min-h-screen overflow-hidden bg-abyss"
-      style={{ paddingTop: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}
+      className="relative min-h-[80vh] overflow-hidden py-32"
       aria-label="Глава 2: Сердце технологии"
     >
-      <div className="container-fluid">
+      {/* Background photo */}
+      <div className="absolute inset-0">
+        <img 
+          src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=1920&q=80&auto=format&fit=crop"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover opacity-30"
+          loading="lazy"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-void/95 via-void/70 to-void/40" />
+      </div>
+      
+      <div className="container-fluid relative z-10">
         {/* Chapter header */}
         <header className="text-center mb-24">
           <p className="text-caption text-brass mb-8">
