@@ -15,6 +15,7 @@
     "@types/howler": "^2.2.13",
     "canvas-confetti": "^1.9.3",
     "date-fns": "^2.30.0",
+    "ecc-universal": "github:affaan-m/ECC",
     "framer-motion": "^11.16.1",
     "gsap": "^3.15.0",
     "howler": "^2.2.4",
